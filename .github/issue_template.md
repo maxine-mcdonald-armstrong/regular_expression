@@ -1,3 +1,8 @@
+---
+name: Issue Template
+about: Use this template as a base for all issues.
+---
+
 ## Overview
 
 <!-- Provide a brief overview of the contents of this issue. -->
