@@ -63,3 +63,14 @@ fn test_token_match_utf8() {
     let lexed_string = lex_string(&token_map, test_input);
     assert_eq!(expected_output, lexed_string);
 }
+
+#[test]
+fn test_invalid_input_utf8() {
+    let token_map = generate_token_map("ab⟹🦀");
+    let test_input = "a🦀A🦀";
+    let expected_output = Err(LexicalError {
+        remaining_string: String::from("A🦀"),
+    });
+    let lexed_string = lex_string(&token_map, test_input);
+    assert_eq!(expected_output, lexed_string);
+}
