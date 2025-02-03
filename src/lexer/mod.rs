@@ -6,24 +6,86 @@ use std::fmt::Formatter;
 mod tests;
 
 #[derive(Debug, PartialEq)]
-struct LexicalError {
-    remaining_string: String,
+struct CharacterParsingError {
+    unmatchable_char: char,
 }
 
-impl Display for LexicalError {
+impl Display for CharacterParsingError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        write!(f, "A lexical error occurred at {}", self.remaining_string)
+        write!(
+            f,
+            "The following character of the input string could not be matched to a token rule: {}",
+            self.unmatchable_char
+        )
+    }
+}
+
+#[derive(Debug, PartialEq)]
+struct ReservedTokenOverwriteError {
+    overwritten_token: Token,
+}
+
+impl Display for ReservedTokenOverwriteError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(
+            f,
+            "A user-defined character has overwritten a reserved token {}. Please check the documentation to see which characters are reserved.",
+            self.overwritten_token
+        )
+    }
+}
+
+#[derive(Debug, PartialEq)]
+enum LexicalError {
+    CharacterParsingError(CharacterParsingError),
+}
+
+struct TokenMap {
+    token_map: HashMap<String, Token>,
+}
+
+impl TokenMap {
+    fn verify_reserved_tokens_exist(&self) {}
+
+    fn new(token_map: HashMap<String, Token>) -> Result<TokenMap, CharacterParsingError> {
+        Ok(TokenMap{token_map: token_map})
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+enum ReservedToken {
+    Choice,
+    Closure,
+    LeftPrecedence,
+    RightPrecedence,
+    EmptyString,
+}
+
+impl Display for ReservedToken {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        match self {
+            ReservedToken::Choice => write!(f, "Choice \"|\""),
+            ReservedToken::Closure => write!(f, "Closure \"*\""),
+            ReservedToken::LeftPrecedence => write!(f, "Left Precedence \"(\""),
+            ReservedToken::RightPrecedence => write!(f, "Right Precedence \")\""),
+            ReservedToken::EmptyString => write!(f, "Empty String \"\\e\""),
+        }
     }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 enum Token {
     Char(char),
-    Choice,
-    Closure,
-    LeftPrecedence,
-    RightPrecedence,
-    EmptyString,
+    ReservedToken(ReservedToken),
+}
+
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        match self {
+            Token::Char(c) => write!(f, "Char \"{}\"", c),
+            Token::ReservedToken(t) => write!(f, "Reserved Token {}", t),
+        }
+    }
 }
 
 fn match_token<'a>(
@@ -35,9 +97,9 @@ fn match_token<'a>(
             return Ok((*token, &input_string[string.len()..]));
         }
     }
-    Err(LexicalError {
-        remaining_string: String::from(input_string),
-    })
+    Err(LexicalError::CharacterParsingError(CharacterParsingError {
+        unmatchable_char: input_string.chars().next().unwrap(),
+    }))
 }
 
 fn lex_string(

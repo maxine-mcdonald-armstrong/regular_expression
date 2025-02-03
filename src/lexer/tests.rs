@@ -4,11 +4,26 @@ use super::*;
 
 fn generate_token_map(alphabet: &'static str) -> HashMap<String, Token> {
     let mut token_map = HashMap::from([
-        (String::from("|"), Token::Choice),
-        (String::from("*"), Token::Closure),
-        (String::from("("), Token::LeftPrecedence),
-        (String::from(")"), Token::RightPrecedence),
-        (String::from("\\e"), Token::EmptyString),
+        (
+            String::from("|"),
+            Token::ReservedToken(ReservedToken::Choice),
+        ),
+        (
+            String::from("*"),
+            Token::ReservedToken(ReservedToken::Closure),
+        ),
+        (
+            String::from("("),
+            Token::ReservedToken(ReservedToken::LeftPrecedence),
+        ),
+        (
+            String::from(")"),
+            Token::ReservedToken(ReservedToken::RightPrecedence),
+        ),
+        (
+            String::from("\\e"),
+            Token::ReservedToken(ReservedToken::EmptyString),
+        ),
     ]);
     for c in alphabet.chars() {
         token_map.insert(String::from(c), Token::Char(c));
@@ -22,13 +37,13 @@ fn test_token_match_ascii() {
     let test_input = "a(b*)a|\\e";
     let expected_output = Ok(vec![
         Token::Char('a'),
-        Token::LeftPrecedence,
+        Token::ReservedToken(ReservedToken::LeftPrecedence),
         Token::Char('b'),
-        Token::Closure,
-        Token::RightPrecedence,
+        Token::ReservedToken(ReservedToken::Closure),
+        Token::ReservedToken(ReservedToken::RightPrecedence),
         Token::Char('a'),
-        Token::Choice,
-        Token::EmptyString,
+        Token::ReservedToken(ReservedToken::Choice),
+        Token::ReservedToken(ReservedToken::EmptyString),
     ]);
     let lexed_string = lex_string(&token_map, test_input);
     assert_eq!(expected_output, lexed_string);
@@ -38,9 +53,9 @@ fn test_token_match_ascii() {
 fn test_invalid_input_ascii() {
     let token_map = generate_token_map("ab");
     let test_input = "aA";
-    let expected_output = Err(LexicalError {
-        remaining_string: String::from("A"),
-    });
+    let expected_output = Err(LexicalError::CharacterParsingError(CharacterParsingError {
+        unmatchable_char: 'A',
+    }));
     let lexed_string = lex_string(&token_map, test_input);
     assert_eq!(expected_output, lexed_string);
 }
@@ -51,14 +66,14 @@ fn test_token_match_utf8() {
     let test_input = "a|b|(🦀⟹)*";
     let expected_output = Ok(vec![
         Token::Char('a'),
-        Token::Choice,
+        Token::ReservedToken(ReservedToken::Choice),
         Token::Char('b'),
-        Token::Choice,
-        Token::LeftPrecedence,
+        Token::ReservedToken(ReservedToken::Choice),
+        Token::ReservedToken(ReservedToken::LeftPrecedence),
         Token::Char('🦀'),
         Token::Char('⟹'),
-        Token::RightPrecedence,
-        Token::Closure,
+        Token::ReservedToken(ReservedToken::RightPrecedence),
+        Token::ReservedToken(ReservedToken::Closure),
     ]);
     let lexed_string = lex_string(&token_map, test_input);
     assert_eq!(expected_output, lexed_string);
@@ -68,9 +83,9 @@ fn test_token_match_utf8() {
 fn test_invalid_input_utf8() {
     let token_map = generate_token_map("ab⟹🦀");
     let test_input = "a🦀A🦀";
-    let expected_output = Err(LexicalError {
-        remaining_string: String::from("A🦀"),
-    });
+    let expected_output = Err(LexicalError::CharacterParsingError(CharacterParsingError {
+        unmatchable_char: 'A',
+    }));
     let lexed_string = lex_string(&token_map, test_input);
     assert_eq!(expected_output, lexed_string);
 }
