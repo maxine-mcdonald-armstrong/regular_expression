@@ -74,3 +74,12 @@ fn test_invalid_input_utf8() {
     let lexed_string = lex_string(&token_map, test_input);
     assert_eq!(expected_output, lexed_string);
 }
+
+#[test]
+fn test_empty_input() {
+    let token_map = generate_token_map("");
+    let test_input = "";
+    let expected_output = Ok(vec![]);
+    let lexed_string = lex_string(&token_map, test_input);
+    assert_eq!(expected_output, lexed_string);
+}
