@@ -81,3 +81,15 @@ fn test_overwrite_reserved_token() {
         })
     );
 }
+
+#[test]
+fn test_violate_prefix_property() {
+    let token_map = generate_token_map("\\").unwrap_err();
+    assert_eq!(
+        token_map,
+        LexicalError::PrefixPropertyViolationError(PrefixPropertyViolationError {
+            contained_string: String::from("\\"),
+            containing_string: String::from("\\e"),
+        })
+    );
+}

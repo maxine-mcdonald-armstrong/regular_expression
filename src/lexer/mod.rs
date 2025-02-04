@@ -37,9 +37,26 @@ impl Display for ReservedTokenOverwriteError {
 }
 
 #[derive(Debug, PartialEq)]
+struct PrefixPropertyViolationError {
+    contained_string: String,
+    containing_string: String,
+}
+
+impl Display for PrefixPropertyViolationError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(
+            f,
+            "The proposed alphabet contains keys which violate the prefix property: {} contains {}.",
+            self.contained_string, self.containing_string
+        )
+    }
+}
+
+#[derive(Debug, PartialEq)]
 enum LexicalError {
     CharacterParsingError(CharacterParsingError),
     ReservedTokenOverwriteError(ReservedTokenOverwriteError),
+    PrefixPropertyViolationError(PrefixPropertyViolationError),
 }
 
 #[derive(Debug)]
@@ -62,6 +79,23 @@ impl TokenMap {
                             overwritten_token: reserved_token,
                         },
                     ))
+                }
+            }
+        }
+        for (key, _) in token_map {
+            let mut prefix = String::new();
+            for c in key.chars() {
+                String::push(&mut prefix, c);
+                if prefix.len() == key.len() {
+                    continue;
+                }
+                if token_map.contains_key(&prefix) {
+                    return Err(LexicalError::PrefixPropertyViolationError(
+                        PrefixPropertyViolationError {
+                            containing_string: String::from(key),
+                            contained_string: prefix,
+                        },
+                    ));
                 }
             }
         }
