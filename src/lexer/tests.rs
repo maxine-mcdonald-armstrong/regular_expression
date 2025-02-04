@@ -2,38 +2,9 @@ use std::string;
 
 use super::*;
 
-fn generate_token_map(alphabet: &'static str) -> HashMap<String, Token> {
-    let mut token_map = HashMap::from([
-        (
-            String::from("|"),
-            Token::ReservedToken(ReservedToken::Choice),
-        ),
-        (
-            String::from("*"),
-            Token::ReservedToken(ReservedToken::Closure),
-        ),
-        (
-            String::from("("),
-            Token::ReservedToken(ReservedToken::LeftPrecedence),
-        ),
-        (
-            String::from(")"),
-            Token::ReservedToken(ReservedToken::RightPrecedence),
-        ),
-        (
-            String::from("\\e"),
-            Token::ReservedToken(ReservedToken::EmptyString),
-        ),
-    ]);
-    for c in alphabet.chars() {
-        token_map.insert(String::from(c), Token::Char(c));
-    }
-    token_map
-}
-
 #[test]
 fn test_token_match_ascii() {
-    let token_map = generate_token_map("ab");
+    let token_map = generate_token_map("ab").unwrap();
     let test_input = "a(b*)a|\\e";
     let expected_output = Ok(vec![
         Token::Char('a'),
@@ -51,7 +22,7 @@ fn test_token_match_ascii() {
 
 #[test]
 fn test_invalid_input_ascii() {
-    let token_map = generate_token_map("ab");
+    let token_map = generate_token_map("ab").unwrap();
     let test_input = "aA";
     let expected_output = Err(LexicalError::CharacterParsingError(CharacterParsingError {
         unmatchable_char: 'A',
@@ -62,7 +33,7 @@ fn test_invalid_input_ascii() {
 
 #[test]
 fn test_token_match_utf8() {
-    let token_map = generate_token_map("ab⟹🦀");
+    let token_map = generate_token_map("ab⟹🦀").unwrap();
     let test_input = "a|b|(🦀⟹)*";
     let expected_output = Ok(vec![
         Token::Char('a'),
@@ -81,7 +52,7 @@ fn test_token_match_utf8() {
 
 #[test]
 fn test_invalid_input_utf8() {
-    let token_map = generate_token_map("ab⟹🦀");
+    let token_map = generate_token_map("ab⟹🦀").unwrap();
     let test_input = "a🦀A🦀";
     let expected_output = Err(LexicalError::CharacterParsingError(CharacterParsingError {
         unmatchable_char: 'A',
@@ -92,9 +63,21 @@ fn test_invalid_input_utf8() {
 
 #[test]
 fn test_empty_input() {
-    let token_map = generate_token_map("");
+    let token_map = generate_token_map("").unwrap();
     let test_input = "";
     let expected_output = Ok(vec![]);
     let lexed_string = lex_string(&token_map, test_input);
     assert_eq!(expected_output, lexed_string);
+}
+
+#[test]
+fn test_overwrite_reserved_token() {
+    let token_map = generate_token_map("*").unwrap_err();
+    assert_eq!(
+        token_map,
+        LexicalError::ReservedTokenOverwriteError(ReservedTokenOverwriteError {
+            overwritten_string: String::from("*"),
+            overwritten_token: Token::ReservedToken(ReservedToken::Closure)
+        })
+    );
 }
