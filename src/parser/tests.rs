@@ -13,6 +13,15 @@ fn test_empty_string() {
 }
 
 #[test]
+fn test_empry_expression() {
+    let test_input = vec![
+        Token::ReservedToken(ReservedToken::LeftPrecedence),
+        Token::ReservedToken(ReservedToken::RightPrecedence),
+    ];
+    assert_eq!(parse(test_input).unwrap(), Expression::EmptyString);
+}
+
+#[test]
 fn test_precedence() {
     let test_input = vec![
         Token::ReservedToken(ReservedToken::LeftPrecedence),
@@ -39,6 +48,17 @@ fn test_closure_fails_on_empty_string() {
         token: Token::ReservedToken(ReservedToken::Closure),
     });
     assert_eq!(parse(test_input).unwrap_err(), expected_output);
+}
+
+#[test]
+fn test_closure_on_empty_expresion() {
+    let test_input = vec![
+        Token::ReservedToken(ReservedToken::LeftPrecedence),
+        Token::ReservedToken(ReservedToken::RightPrecedence),
+        Token::ReservedToken(ReservedToken::Closure),
+    ];
+    let expected_output = Expression::Closure(Box::from(Expression::EmptyString));
+    assert_eq!(parse(test_input).unwrap(), expected_output);
 }
 
 #[test]
