@@ -111,12 +111,11 @@ impl TokenMap {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-enum ReservedToken {
+pub enum ReservedToken {
     Choice,
     Closure,
     LeftPrecedence,
     RightPrecedence,
-    EmptyString,
 }
 
 impl Display for ReservedToken {
@@ -126,13 +125,12 @@ impl Display for ReservedToken {
             ReservedToken::Closure => write!(f, "Closure \"*\""),
             ReservedToken::LeftPrecedence => write!(f, "Left Precedence \"(\""),
             ReservedToken::RightPrecedence => write!(f, "Right Precedence \")\""),
-            ReservedToken::EmptyString => write!(f, "Empty String \"\\e\""),
         }
     }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-enum Token {
+pub enum Token {
     Char(char),
     ReservedToken(ReservedToken),
 }
@@ -163,10 +161,6 @@ fn generate_reserved_token_map() -> HashMap<String, Token> {
         (
             String::from(")"),
             Token::ReservedToken(ReservedToken::RightPrecedence),
-        ),
-        (
-            String::from("\\e"),
-            Token::ReservedToken(ReservedToken::EmptyString),
         ),
     ])
 }

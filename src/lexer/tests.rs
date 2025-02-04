@@ -1,11 +1,9 @@
-use std::string;
-
 use super::*;
 
 #[test]
 fn test_token_match_ascii() {
     let token_map = generate_token_map("ab").unwrap();
-    let test_input = "a(b*)a|\\e";
+    let test_input = "a(b*)a|";
     let expected_output = Ok(vec![
         Token::Char('a'),
         Token::ReservedToken(ReservedToken::LeftPrecedence),
@@ -14,7 +12,6 @@ fn test_token_match_ascii() {
         Token::ReservedToken(ReservedToken::RightPrecedence),
         Token::Char('a'),
         Token::ReservedToken(ReservedToken::Choice),
-        Token::ReservedToken(ReservedToken::EmptyString),
     ]);
     let lexed_string = lex_string(&token_map, test_input);
     assert_eq!(expected_output, lexed_string);
@@ -78,18 +75,6 @@ fn test_overwrite_reserved_token() {
         LexicalError::ReservedTokenOverwriteError(ReservedTokenOverwriteError {
             overwritten_string: String::from("*"),
             overwritten_token: Token::ReservedToken(ReservedToken::Closure)
-        })
-    );
-}
-
-#[test]
-fn test_violate_prefix_property() {
-    let token_map = generate_token_map("\\").unwrap_err();
-    assert_eq!(
-        token_map,
-        LexicalError::PrefixPropertyViolationError(PrefixPropertyViolationError {
-            contained_string: String::from("\\"),
-            containing_string: String::from("\\e"),
         })
     );
 }
