@@ -60,6 +60,9 @@ ALPHABET            ::= Σ \ {
                                 LEFT_PRECEDENCE,
                                 RIGHT_PRECEDENCE,
                                 AND_CLOSURE,
+                                CHOICE_CLOSURE,
+                                CHOICE_ALPHABET,
+                                INVERSE_CHOICE_ALPHABET,
                             }
 
 ```
