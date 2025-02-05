@@ -39,7 +39,7 @@ RIGHT_PRECEDENCE    ::= ")"
 
 ## Operational Semantics
 
-The following big step operational semantics are written in the following format:
+The following big step operational semantics are written in the format:
 
 $$ \frac{P_1\\; P_2 \ldots\\; P_n}{Q}, $$
 $$ P_i, Q\\; \text{of the form}\\; E \xrightarrow{s} V, s \in \Sigma^* \cup \\{\epsilon\\}. $$
