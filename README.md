@@ -49,16 +49,19 @@ Where $P_i$ is a predicate and $Q$ is an inference which holds if all $P_i,\\; i
 ---
 
 EMPTY_STRING
+
 $$\frac{}{
     \epsilon \xrightarrow{\epsilon} \texttt{True}
 }$$
 
 CHAR
+
 $$\frac{}{
     \sigma \xrightarrow{\sigma} \texttt{True}
 }$$
 
 Concatenation
+
 $$\frac{
     E \xrightarrow{s_1} \texttt{True}, F \xrightarrow{s_2} \texttt{True}
 }{
@@ -66,6 +69,7 @@ $$\frac{
 }$$
 
 Closure
+
 $$\frac{}{
     E^* \xrightarrow{\epsilon} \texttt{True}
 }$$
@@ -76,6 +80,7 @@ $$\frac{
 }$$
 
 Choice
+
 $$\frac{
     E \xrightarrow{s} \texttt{True}
 }{
