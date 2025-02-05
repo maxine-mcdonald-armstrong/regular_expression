@@ -8,7 +8,7 @@ This library accepts regular expressions of the following form over a user-defin
 The syntax is given in a language based on [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) with the addition of set operations necessary to describe characters in the context of an arbitrary user-defined alphabet.
 
 ```text
-/* Expression types ordered by precidence
+/* Expression types ordered by precedence
 --------------------------------------------------------------------- */
 
 Expression          ::= [Choice]
@@ -17,24 +17,51 @@ Choice              ::= [Concatenation] {CHOICE Concatenation}
 
 Concatenation       ::= Closure {Closure}
 
-Closure             ::= Atomic [CLOSURE]
+Closure             ::= Atomic [CLOSURE_TYPE]
 
-Atomic              ::= CHAR
+Atomic              ::= CHAR_TYPE
                         | LEFT_PRECEDENCE Expression RIGHT_PRECEDENCE
+
+/* Union Types
+--------------------------------------------------------------------- */
+
+CLOSURE_TYPE        ::= CLOSURE
+                        | AND_CLOSURE
+                        | CHOICE_CLOSURE
+
+CHAR_TYPE           ::= CHAR
+                        | CHOICE_ALPHABET
+                        | INVERSE_CHOICE_ALPHABET CHAR
 
 /* Atomics 
 --------------------------------------------------------------------- */
 
-CHAR                ::= σ ∈ Σ \ {
-                                    CHOICE,
-                                    CLOSURE,
-                                    LEFT_PRECEDENCE,
-                                    RIGHT_PRECEDENCE,
-                                }
+CHAR                ::= σ ∈ ALPHABET
 CHOICE              ::= "|"
 CLOSURE             ::= "*"
 LEFT_PRECEDENCE     ::= "("
 RIGHT_PRECEDENCE    ::= ")"
+
+/* Sugar Atomics
+--------------------------------------------------------------------- */
+
+AND_CLOSURE             ::= "+"
+CHOICE_CLOSURE          ::= "?"
+
+CHOICE_ALPHABET         ::= "."
+INVERSE_CHOICE_ALPHABET ::= "^"
+
+/* Alphabet
+--------------------------------------------------------------------- */
+
+ALPHABET            ::= Σ \ {
+                                CHOICE,
+                                CLOSURE,
+                                LEFT_PRECEDENCE,
+                                RIGHT_PRECEDENCE,
+                                AND_CLOSURE,
+                            }
+
 ```
 
 ## Semantics
