@@ -49,10 +49,15 @@ Let $\epsilon$ represent the empty string.
 ---
 
 Identities
+
 $$\left[\\!\left[ \epsilon \right]\\!\right] = \left\\{\epsilon\right\\}$$
+
 $$\left[\\!\left[ \sigma \right]\\!\right], \sigma \in \Sigma = \left\\{\sigma\right\\}$$
 
 Operations
+
 $$\left[\\!\left[ AB \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \times \left[\\!\left[ B \right]\\!\right]$$
+
 $$\left[\\!\left[ A|B \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \cup \left[\\!\left[ B \right]\\!\right]$$
+
 $$\left[\\!\left[ A^* \right]\\!\right] = \bigcup_{n \in \mathbf{N}} \left[\\!\left[ A \right]\\!\right]^n \cup \left\\{\epsilon\right\\}$$
