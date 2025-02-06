@@ -100,4 +100,4 @@ $$\left[\\!\left[ A? \right]\\!\right] = \left[\\!\left[ \epsilon \right]\\!\rig
 
 $$\left[\\!\left[ . \right]\\!\right] = \bigcup_{\sigma \in \Sigma} \left[\\!\left[ \sigma \right]\\!\right]$$
 
-$$\left[\\!\left[ \\;\hat{}\\;\sigma \right]\\!\right], \sigma \in \Sigma = \left[\\!\left[ . \right]\\!\right] \setminus \left[\\!\left[ \sigma \right]\\!\right]$$
+$$\left[\\!\left[ \\;\hat{}\\,\sigma \right]\\!\right], \sigma \in \Sigma = \left[\\!\left[ . \right]\\!\right] \setminus \left[\\!\left[ \sigma \right]\\!\right]$$
