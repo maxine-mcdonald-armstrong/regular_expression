@@ -37,57 +37,22 @@ LEFT_PRECEDENCE     ::= "("
 RIGHT_PRECEDENCE    ::= ")"
 ```
 
-## Operational Semantics
+## Semantics
 
-The following [big step operational semantics](https://en.wikipedia.org/wiki/Operational_semantics#Big-step_semantics) are written in the format:
+The semantics of the regular expressions admitted by this crate are represented below in denotational semantics, mapping regular expressions to the set of strings they accept.
+A statement of the form $\left[\\!\left[ E \right]\\!\right] = V$ denotes a mapping between the expression $E$ and the mathematical object $V$.
 
-$$ \frac{P_1\\; P_2 \ldots\\; P_n}{Q}, $$
-$$ P_i, Q\\; \text{of the form}\\; E \xrightarrow{s} V, s \in \Sigma^* \cup \\{\epsilon\\}. $$
+Aside from the common set operations, let us define $A \times B = \left\\{ab\\ \vert a \in A \wedge b \in B\right\\}$ for sets of strings $A, B$ where juxtaposition in $ab$ represents string concatenation.
 
-Where $P_i$ is a predicate and $Q$ is an inference which holds if all $P_i,\\; i \in \\{1 \ldots n\\}$ hold, $E$ is a regular expression, $V \in \\{\texttt{True}, \texttt{False}\\}$ is a value, and $E \xrightarrow{s} V$ represents the evaluation of $E$ to $V$ on the string $s$, consuming it in its entirety.
+Let $\epsilon$ represent the empty string.
 
 ---
 
-EMPTY_STRING
+Identities
+$$\left[\\!\left[ \epsilon \right]\\!\right] = \left\\{\epsilon\right\\}$$
+$$\left[\\!\left[ \sigma \right]\\!\right], \sigma \in \Sigma = \left\\{\sigma\right\\}$$
 
-$$\frac{}{
-    \epsilon \xrightarrow{\epsilon} \texttt{True}
-}$$
-
-CHAR
-
-$$\frac{}{
-    \sigma \xrightarrow{\sigma} \texttt{True}
-}$$
-
-Concatenation
-
-$$\frac{
-    E \xrightarrow{s_1} \texttt{True}, F \xrightarrow{s_2} \texttt{True}
-}{
-    EF \xrightarrow{s_1s_2} \texttt{True}
-}$$
-
-Closure
-
-$$\frac{}{
-    E^* \xrightarrow{\epsilon} \texttt{True}
-}$$
-$$\frac{
-    EE^* \xrightarrow{s} \texttt{True}
-}{
-    E^* \xrightarrow{s} \texttt{True}
-}$$
-
-Choice
-
-$$\frac{
-    E \xrightarrow{s} \texttt{True}
-}{
-    E|F \xrightarrow{s} \texttt{True}
-}$$
-$$\frac{
-    F \xrightarrow{s} \texttt{True}
-}{
-    E|F \xrightarrow{s} \texttt{True}
-}$$
+Operations
+$$\left[\\!\left[ AB \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \times \left[\\!\left[ B \right]\\!\right]$$
+$$\left[\\!\left[ A|B \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \cup \left[\\!\left[ B \right]\\!\right]$$
+$$\left[\\!\left[ A^* \right]\\!\right] = \bigcup_{n \in \mathbf{N}} \left[\\!\left[ A \right]\\!\right]^n \cup \left\\{\epsilon\right\\}$$
