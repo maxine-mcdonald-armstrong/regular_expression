@@ -84,10 +84,20 @@ $$\left[\\!\left[ \epsilon \right]\\!\right] = \left\\{\epsilon\right\\}$$
 
 $$\left[\\!\left[ \sigma \right]\\!\right], \sigma \in \Sigma = \left\\{\sigma\right\\}$$
 
-Operations
+Core Operations
 
 $$\left[\\!\left[ AB \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \times \left[\\!\left[ B \right]\\!\right]$$
 
 $$\left[\\!\left[ A|B \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \cup \left[\\!\left[ B \right]\\!\right]$$
 
 $$\left[\\!\left[ A^* \right]\\!\right] = \bigcup_{n \in \mathbf{N}} \left[\\!\left[ A \right]\\!\right]^n \cup \left\\{\epsilon\right\\}$$
+
+Sugars
+
+$$\left[\\!\left[ A+ \right]\\!\right] = \left[\\!\left[ AA^* \right]\\!\right]$$
+
+$$\left[\\!\left[ A? \right]\\!\right] = \left[\\!\left[ \epsilon \right]\\!\right] \cup \left[\\!\left[ A \right]\\!\right]$$
+
+$$\left[\\!\left[ . \right]\\!\right] = \bigcup_{\sigma \in \Sigma} \left[\\!\left[ \sigma \right]\\!\right]$$
+
+$$\left[\\!\left[ \\;\hat{}\\;\sigma \right]\\!\right], \sigma \in \Sigma = \left[\\!\left[ . \right]\\!\right] \setminus \left[\\!\left[ \sigma \right]\\!\right]$$
