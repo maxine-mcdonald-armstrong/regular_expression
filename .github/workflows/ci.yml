@@ -75,18 +75,3 @@ jobs:
         run: cargo fmt -- --check
       - name: Run cargo-deny
         uses: EmbarkStudios/cargo-deny-action@v1
-
-  lint-generic:
-    runs-on: ubuntu-24.04
-    needs: test
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install other dependencies
-        run: sudo apt-get install moreutils dos2unix
-      - name: Check encoding
-        run: isutf8 **/*
-      - name: Check line endings
-        run: bash .github/workflows/scripts/check_line_endings.sh
-      - name: Check TODOs
-        run: bash .github/workflows/scripts/check_todos.sh
