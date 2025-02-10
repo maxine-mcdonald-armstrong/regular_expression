@@ -11,7 +11,7 @@ The syntax is given in a language based on [EBNF](https://en.wikipedia.org/wiki/
 /* Expression types ordered by precidence
 --------------------------------------------------------------------- */
 
-Expression          ::= [Choice]
+Expression          ::= Choice
 
 Choice              ::= [Concatenation] {CHOICE Concatenation}
 
