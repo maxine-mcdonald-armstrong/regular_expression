@@ -67,8 +67,6 @@ impl Display for PrefixPropertyViolationError {
 }
 
 /// Wraps all lexer-based errors.
-/// 
-/// In the future may be exposed.
 #[derive(Debug, PartialEq)]
 enum LexicalError {
     CharacterParsingError(CharacterParsingError),
