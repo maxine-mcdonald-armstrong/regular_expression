@@ -10,7 +10,7 @@ use std::iter::Peekable;
 mod tests;
 
 /// Runtime error representing that the input token stream was invalid due to a missing token.
-/// 
+///
 /// For example, a [`ReservedToken::Choice`] Not followed by a valid [`Expression`], or a
 /// [`ReservedToken::LeftPrecedence`] without a matching [`ReservedToken::RightPrecedence`].
 #[derive(Debug, PartialEq)]
@@ -29,7 +29,7 @@ impl Display for MissingExpectedTokenError {
 }
 
 /// Runtime error representing that the input token stream was invalid due to an extra token.
-/// 
+///
 /// For example, a [`ReservedToken::Closure`] not after a non-empty [`Expression`].
 #[derive(Debug, PartialEq)]
 struct UnexpectedTokenError {
@@ -50,7 +50,7 @@ enum SyntacticError {
 }
 
 /// Represents an AST node.
-/// 
+///
 /// [`Expression::EmptyString`] and [`Expression::Char`] are always and the only leaf nodes.
 #[derive(Debug, PartialEq)]
 enum Expression {
@@ -181,7 +181,7 @@ where
 }
 
 /// Parses an [`Expression`] as defined in the [syntax documentation](crate).
-/// 
+///
 /// The hierarchy made explicit in the [syntax](crate) is followed here, so [`parse_expression`]
 /// matches a choice, [`parse_choice`] matches zero or more concatenations separated by "|", etc.
 fn parse_expression<I>(token_stream: &mut Peekable<I>) -> Result<Expression, SyntacticError>

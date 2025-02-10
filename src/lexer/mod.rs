@@ -75,8 +75,8 @@ enum LexicalError {
 }
 
 /// Wraps a [`HashMap<String, Token>`], providing runtime guarantees.
-/// 
-/// Constructor [`TokenMap::new`] ensures certain properties are met at runtime. 
+///
+/// Constructor [`TokenMap::new`] ensures certain properties are met at runtime.
 #[derive(Debug)]
 struct TokenMap {
     token_map: HashMap<String, Token>,
@@ -124,9 +124,7 @@ impl TokenMap {
     /// Sanitising constructor.
     fn new(token_map: HashMap<String, Token>) -> Result<TokenMap, LexicalError> {
         TokenMap::verify_reserved_tokens_exist(&token_map)?;
-        Ok(TokenMap {
-            token_map,
-        })
+        Ok(TokenMap { token_map })
     }
 }
 
@@ -151,7 +149,7 @@ impl Display for ReservedToken {
 }
 
 /// [`Token`]s which are consumed by the parser.
-/// 
+///
 /// These represent the units of the lexed text. Currently there is a direct correlation between
 /// char and [`Token`], but in the future this abstraction may help the parser by wrapping
 /// multi-char [`Token`]s.

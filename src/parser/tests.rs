@@ -113,14 +113,8 @@ fn test_choice_on_concatenation() {
         Token::Char('c'),
     ];
     let expected_output = Expression::Choice(vec![
-        Expression::Concatenation(vec![
-            Expression::Char('a'),
-            Expression::Char('b'),
-        ]),
-        Expression::Concatenation(vec![
-            Expression::Char('b'),
-            Expression::Char('c'),
-        ]),
+        Expression::Concatenation(vec![Expression::Char('a'), Expression::Char('b')]),
+        Expression::Concatenation(vec![Expression::Char('b'), Expression::Char('c')]),
     ]);
     assert_eq!(parse(test_input).unwrap(), expected_output);
 }
