@@ -6,4 +6,4 @@ edition = "2021"
 [dependencies]
 
 [package.metadata.docs.rs]
-rustdoc-args = [ "--html-in-header", "katex-header.html" ]
+rustdoc-args = [ "--html-in-header", "katex-header.html", "--document-private-items" ]
