@@ -10,7 +10,7 @@ use std::iter::Peekable;
 mod tests;
 
 /// Runtime error representing that the input token stream was invalid due to a missing token.
-/// 
+///
 /// For example, a [`ReservedToken::Choice`] Not followed by a valid [`Expression`], or a
 /// [`ReservedToken::LeftPrecedence`] without a matching [`ReservedToken::RightPrecedence`].
 #[derive(Debug, PartialEq)]
@@ -29,7 +29,7 @@ impl Display for MissingExpectedTokenError {
 }
 
 /// Runtime error representing that the input token stream was invalid due to an extra token.
-/// 
+///
 /// For example, a [`ReservedToken::Closure`] not after a non-empty [`Expression`].
 #[derive(Debug, PartialEq)]
 struct UnexpectedTokenError {
@@ -45,17 +45,17 @@ impl Display for UnexpectedTokenError {
 /// Wraps all parser-based errors.
 #[derive(Debug, PartialEq)]
 enum SyntacticError {
-    UnexpectedTokenError(UnexpectedTokenError),
-    MissingExpectedTokenError(MissingExpectedTokenError),
+    UnexpectedToken(UnexpectedTokenError),
+    MissingExpectedToken(MissingExpectedTokenError),
 }
 
 /// Represents an AST node.
-/// 
+///
 /// [`Expression::EmptyString`] and [`Expression::Char`] are always and the only leaf nodes.
 #[derive(Debug, PartialEq)]
 enum Expression {
-    Concatenation(Vec<Box<Expression>>),
-    Choice(Vec<Box<Expression>>),
+    Concatenation(Vec<Expression>),
+    Choice(Vec<Expression>),
     Closure(Box<Expression>),
     Char(char),
     EmptyString,
@@ -77,13 +77,13 @@ where
             let expression = parse_expression(token_stream)?;
             match token_stream.next() {
                 Some(Token::ReservedToken(ReservedToken::RightPrecedence)) => Ok(expression),
-                None => Err(SyntacticError::MissingExpectedTokenError(
+                None => Err(SyntacticError::MissingExpectedToken(
                     MissingExpectedTokenError {
                         actual_token: None,
                         expected_token: Token::ReservedToken(ReservedToken::RightPrecedence),
                     },
                 )),
-                Some(t) => Err(SyntacticError::UnexpectedTokenError(UnexpectedTokenError {
+                Some(t) => Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
                     token: t,
                 })),
             }
@@ -99,7 +99,7 @@ where
 {
     if token_stream.peek() == Some(&Token::ReservedToken(ReservedToken::Closure)) {
         // Closure acting on empty string is disallowed
-        return Err(SyntacticError::UnexpectedTokenError(UnexpectedTokenError {
+        return Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
             token: Token::ReservedToken(ReservedToken::Closure),
         }));
     }
@@ -119,14 +119,14 @@ where
     I: Iterator<Item = Token>,
 {
     let closure = parse_closure(token_stream)?;
-    if token_stream.peek() == None
+    if token_stream.peek().is_none()
         || token_stream.peek() == Some(&Token::ReservedToken(ReservedToken::RightPrecedence))
         || token_stream.peek() == Some(&Token::ReservedToken(ReservedToken::Choice))
     {
         return Ok(closure);
     }
-    let mut concatenation: Vec<Box<Expression>> = Vec::from([Box::from(closure)]);
-    while token_stream.peek() != None {
+    let mut concatenation: Vec<Expression> = Vec::from([closure]);
+    while token_stream.peek().is_some() {
         match token_stream.peek().unwrap() {
             // end of concatenation
             Token::ReservedToken(ReservedToken::Choice)
@@ -135,11 +135,11 @@ where
             }
             // next closure
             Token::Char(_) | Token::ReservedToken(ReservedToken::LeftPrecedence) => {
-                concatenation.push(Box::from(parse_closure(token_stream)?));
+                concatenation.push(parse_closure(token_stream)?);
             }
             // invalid
             t => {
-                return Err(SyntacticError::UnexpectedTokenError(UnexpectedTokenError {
+                return Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
                     token: *t,
                 }));
             }
@@ -154,24 +154,24 @@ where
     I: Iterator<Item = Token>,
 {
     let juxtaposition = parse_concatenation(token_stream)?;
-    if token_stream.peek() == None
+    if token_stream.peek().is_none()
         || token_stream.peek() == Some(&Token::ReservedToken(ReservedToken::RightPrecedence))
     {
         return Ok(juxtaposition);
     }
-    let mut choice: Vec<Box<Expression>> = Vec::from([Box::from(juxtaposition)]);
-    while token_stream.peek() != None {
+    let mut choice: Vec<Expression> = Vec::from([juxtaposition]);
+    while token_stream.peek().is_some() {
         match token_stream.peek().unwrap() {
             Token::ReservedToken(ReservedToken::Choice) => {
                 token_stream.next();
-                choice.push(Box::from(parse_concatenation(token_stream)?));
+                choice.push(parse_concatenation(token_stream)?);
             }
             Token::ReservedToken(ReservedToken::RightPrecedence) => {
                 token_stream.next();
                 break;
             }
             t => {
-                return Err(SyntacticError::UnexpectedTokenError(UnexpectedTokenError {
+                return Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
                     token: *t,
                 }));
             }
@@ -181,7 +181,7 @@ where
 }
 
 /// Parses an [`Expression`] as defined in the [syntax documentation](crate).
-/// 
+///
 /// The hierarchy made explicit in the [syntax](crate) is followed here, so [`parse_expression`]
 /// matches a choice, [`parse_choice`] matches zero or more concatenations separated by "|", etc.
 fn parse_expression<I>(token_stream: &mut Peekable<I>) -> Result<Expression, SyntacticError>
@@ -197,7 +197,7 @@ fn parse(token_stream: Vec<Token>) -> Result<Expression, SyntacticError> {
     let expression = parse_expression(&mut token_stream_iterable)?;
     match token_stream_iterable.next() {
         None => Ok(expression),
-        Some(t) => Err(SyntacticError::UnexpectedTokenError(UnexpectedTokenError {
+        Some(t) => Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
             token: t,
         })),
     }

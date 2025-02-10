@@ -69,14 +69,14 @@ impl Display for PrefixPropertyViolationError {
 /// Wraps all lexer-based errors.
 #[derive(Debug, PartialEq)]
 enum LexicalError {
-    CharacterParsingError(CharacterParsingError),
-    ReservedTokenOverwriteError(ReservedTokenOverwriteError),
-    PrefixPropertyViolationError(PrefixPropertyViolationError),
+    CharacterParsing(CharacterParsingError),
+    ReservedTokenOverwrite(ReservedTokenOverwriteError),
+    PrefixPropertyViolation(PrefixPropertyViolationError),
 }
 
 /// Wraps a [`HashMap<String, Token>`], providing runtime guarantees.
-/// 
-/// Constructor [`TokenMap::new`] ensures certain properties are met at runtime. 
+///
+/// Constructor [`TokenMap::new`] ensures certain properties are met at runtime.
 #[derive(Debug)]
 struct TokenMap {
     token_map: HashMap<String, Token>,
@@ -92,7 +92,7 @@ impl TokenMap {
             match token_map[&reserved_key] {
                 Token::ReservedToken(_) => continue,
                 _ => {
-                    return Err(LexicalError::ReservedTokenOverwriteError(
+                    return Err(LexicalError::ReservedTokenOverwrite(
                         ReservedTokenOverwriteError {
                             overwritten_string: reserved_key,
                             overwritten_token: reserved_token,
@@ -101,7 +101,7 @@ impl TokenMap {
                 }
             }
         }
-        for (key, _) in token_map {
+        for key in token_map.keys() {
             let mut prefix = String::new();
             for c in key.chars() {
                 String::push(&mut prefix, c);
@@ -109,7 +109,7 @@ impl TokenMap {
                     continue;
                 }
                 if token_map.contains_key(&prefix) {
-                    return Err(LexicalError::PrefixPropertyViolationError(
+                    return Err(LexicalError::PrefixPropertyViolation(
                         PrefixPropertyViolationError {
                             containing_string: String::from(key),
                             contained_string: prefix,
@@ -124,9 +124,7 @@ impl TokenMap {
     /// Sanitising constructor.
     fn new(token_map: HashMap<String, Token>) -> Result<TokenMap, LexicalError> {
         TokenMap::verify_reserved_tokens_exist(&token_map)?;
-        Ok(TokenMap {
-            token_map: token_map,
-        })
+        Ok(TokenMap { token_map })
     }
 }
 
@@ -151,7 +149,7 @@ impl Display for ReservedToken {
 }
 
 /// [`Token`]s which are consumed by the parser.
-/// 
+///
 /// These represent the units of the lexed text. Currently there is a direct correlation between
 /// char and [`Token`], but in the future this abstraction may help the parser by wrapping
 /// multi-char [`Token`]s.
@@ -211,7 +209,7 @@ fn match_token<'a>(
             return Ok((*token, &input_string[string.len()..]));
         }
     }
-    Err(LexicalError::CharacterParsingError(CharacterParsingError {
+    Err(LexicalError::CharacterParsing(CharacterParsingError {
         unmatchable_char: input_string.chars().next().unwrap(),
     }))
 }

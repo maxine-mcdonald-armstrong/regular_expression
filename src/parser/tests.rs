@@ -44,7 +44,7 @@ fn test_closure() {
 #[test]
 fn test_closure_fails_on_empty_string() {
     let test_input = vec![Token::ReservedToken(ReservedToken::Closure)];
-    let expected_output = SyntacticError::UnexpectedTokenError(UnexpectedTokenError {
+    let expected_output = SyntacticError::UnexpectedToken(UnexpectedTokenError {
         token: Token::ReservedToken(ReservedToken::Closure),
     });
     assert_eq!(parse(test_input).unwrap_err(), expected_output);
@@ -65,9 +65,9 @@ fn test_closure_on_empty_expresion() {
 fn test_concatenation() {
     let test_input = vec![Token::Char('a'), Token::Char('b'), Token::Char('c')];
     let expected_output = Expression::Concatenation(vec![
-        Box::from(Expression::Char('a')),
-        Box::from(Expression::Char('b')),
-        Box::from(Expression::Char('c')),
+        Expression::Char('a'),
+        Expression::Char('b'),
+        Expression::Char('c'),
     ]);
     assert_eq!(parse(test_input).unwrap(), expected_output);
 }
@@ -80,8 +80,8 @@ fn test_concatenation_on_closure() {
         Token::Char('b'),
     ];
     let expected_output = Expression::Concatenation(vec![
-        Box::from(Expression::Closure(Box::from(Expression::Char('a')))),
-        Box::from(Expression::Char('b')),
+        Expression::Closure(Box::from(Expression::Char('a'))),
+        Expression::Char('b'),
     ]);
     assert_eq!(parse(test_input).unwrap(), expected_output);
 }
@@ -96,9 +96,9 @@ fn test_choice() {
         Token::Char('c'),
     ];
     let expected_output = Expression::Choice(vec![
-        Box::from(Expression::Char('a')),
-        Box::from(Expression::Char('b')),
-        Box::from(Expression::Char('c')),
+        Expression::Char('a'),
+        Expression::Char('b'),
+        Expression::Char('c'),
     ]);
     assert_eq!(parse(test_input).unwrap(), expected_output);
 }
@@ -113,14 +113,8 @@ fn test_choice_on_concatenation() {
         Token::Char('c'),
     ];
     let expected_output = Expression::Choice(vec![
-        Box::from(Expression::Concatenation(vec![
-            Box::from(Expression::Char('a')),
-            Box::from(Expression::Char('b')),
-        ])),
-        Box::from(Expression::Concatenation(vec![
-            Box::from(Expression::Char('b')),
-            Box::from(Expression::Char('c')),
-        ])),
+        Expression::Concatenation(vec![Expression::Char('a'), Expression::Char('b')]),
+        Expression::Concatenation(vec![Expression::Char('b'), Expression::Char('c')]),
     ]);
     assert_eq!(parse(test_input).unwrap(), expected_output);
 }
@@ -134,10 +128,10 @@ fn test_choice_on_empty_string() {
         Token::ReservedToken(ReservedToken::Choice),
     ];
     let expected_output = Expression::Choice(vec![
-        Box::from(Expression::EmptyString),
-        Box::from(Expression::EmptyString),
-        Box::from(Expression::Char('a')),
-        Box::from(Expression::EmptyString),
+        Expression::EmptyString,
+        Expression::EmptyString,
+        Expression::Char('a'),
+        Expression::EmptyString,
     ]);
     assert_eq!(parse(test_input).unwrap(), expected_output);
 }
