@@ -21,7 +21,7 @@ fn test_token_match_ascii() {
 fn test_invalid_input_ascii() {
     let token_map = generate_token_map("ab").unwrap();
     let test_input = "aA";
-    let expected_output = Err(LexicalError::CharacterParsingError(CharacterParsingError {
+    let expected_output = Err(LexicalError::CharacterParsing(CharacterParsingError {
         unmatchable_char: 'A',
     }));
     let lexed_string = lex_string(&token_map, test_input);
@@ -51,7 +51,7 @@ fn test_token_match_utf8() {
 fn test_invalid_input_utf8() {
     let token_map = generate_token_map("ab⟹🦀").unwrap();
     let test_input = "a🦀A🦀";
-    let expected_output = Err(LexicalError::CharacterParsingError(CharacterParsingError {
+    let expected_output = Err(LexicalError::CharacterParsing(CharacterParsingError {
         unmatchable_char: 'A',
     }));
     let lexed_string = lex_string(&token_map, test_input);
@@ -72,7 +72,7 @@ fn test_overwrite_reserved_token() {
     let token_map = generate_token_map("*").unwrap_err();
     assert_eq!(
         token_map,
-        LexicalError::ReservedTokenOverwriteError(ReservedTokenOverwriteError {
+        LexicalError::ReservedTokenOverwrite(ReservedTokenOverwriteError {
             overwritten_string: String::from("*"),
             overwritten_token: Token::ReservedToken(ReservedToken::Closure)
         })
