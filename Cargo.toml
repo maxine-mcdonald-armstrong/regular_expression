@@ -7,3 +7,8 @@ edition = "2021"
 
 [package.metadata.docs.rs]
 rustdoc-args = [ "--html-in-header", "katex-header.html", "--document-private-items" ]
+
+[bans]
+allow = [
+    { name = "regular_expression" },
+]
