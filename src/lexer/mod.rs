@@ -1,3 +1,9 @@
+//! Generates a [`Token`] stream from a regular expression string.
+//!
+//! Enforces the following properties at runtime:
+//! - Every reserved token is representable by some char.
+//! - The input string does not contain any chars not mapped to [`Token`]s.
+
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::fmt::Formatter;
@@ -5,6 +11,7 @@ use std::fmt::Formatter;
 #[cfg(test)]
 mod tests;
 
+/// Runtime error representing that the input string is not parsable to a [`Token`].
 #[derive(Debug, PartialEq)]
 struct CharacterParsingError {
     unmatchable_char: char,
@@ -20,6 +27,7 @@ impl Display for CharacterParsingError {
     }
 }
 
+/// Runtime error representing that the input alphabet overwrote some reserved [`Token`].
 #[derive(Debug, PartialEq)]
 struct ReservedTokenOverwriteError {
     overwritten_string: String,
@@ -36,6 +44,12 @@ impl Display for ReservedTokenOverwriteError {
     }
 }
 
+/// Runtime error representing that the input alphabet does not satisfy the prefix property.
+///
+/// This error is currently never returned, as only chars are supported in the user-defined
+/// alphabet, and all reserved [`Token`]s are single-char. It is being kept in the code during
+/// development as there are open issues which may result in changes to the input alphabet,
+/// allowing it to contain arbitrary-length strings.
 #[derive(Debug, PartialEq)]
 struct PrefixPropertyViolationError {
     contained_string: String,
@@ -52,6 +66,9 @@ impl Display for PrefixPropertyViolationError {
     }
 }
 
+/// Wraps all lexer-based errors.
+/// 
+/// In the future may be exposed.
 #[derive(Debug, PartialEq)]
 enum LexicalError {
     CharacterParsingError(CharacterParsingError),
@@ -59,12 +76,16 @@ enum LexicalError {
     PrefixPropertyViolationError(PrefixPropertyViolationError),
 }
 
+/// Wraps a [`HashMap<String, Token>`], providing runtime guarantees.
+/// 
+/// Constructor [`TokenMap::new`] ensures certain properties are met at runtime. 
 #[derive(Debug)]
 struct TokenMap {
     token_map: HashMap<String, Token>,
 }
 
 impl TokenMap {
+    /// Verifies that reserved tokens exist and prefix property exists.
     fn verify_reserved_tokens_exist(
         token_map: &HashMap<String, Token>,
     ) -> Result<(), LexicalError> {
@@ -102,6 +123,7 @@ impl TokenMap {
         Ok(())
     }
 
+    /// Sanitising constructor.
     fn new(token_map: HashMap<String, Token>) -> Result<TokenMap, LexicalError> {
         TokenMap::verify_reserved_tokens_exist(&token_map)?;
         Ok(TokenMap {
@@ -110,6 +132,7 @@ impl TokenMap {
     }
 }
 
+/// [`Token`]s that don't represent matches to characters in the user-defined alphabet.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ReservedToken {
     Choice,
@@ -129,6 +152,11 @@ impl Display for ReservedToken {
     }
 }
 
+/// [`Token`]s which are consumed by the parser.
+/// 
+/// These represent the units of the lexed text. Currently there is a direct correlation between
+/// char and [`Token`], but in the future this abstraction may help the parser by wrapping
+/// multi-char [`Token`]s.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Token {
     Char(char),
@@ -144,6 +172,7 @@ impl Display for Token {
     }
 }
 
+/// Generates a [`HashMap<String, Token>`] representing [`ReservedToken`]s.
 fn generate_reserved_token_map() -> HashMap<String, Token> {
     HashMap::from([
         (
@@ -165,6 +194,7 @@ fn generate_reserved_token_map() -> HashMap<String, Token> {
     ])
 }
 
+/// Generates a [`HashMap<String, Token>`] from an input [`str`] alphabet.
 fn generate_token_map(alphabet: &str) -> Result<TokenMap, LexicalError> {
     let mut token_map = generate_reserved_token_map();
     for c in alphabet.chars() {
@@ -173,6 +203,7 @@ fn generate_token_map(alphabet: &str) -> Result<TokenMap, LexicalError> {
     TokenMap::new(token_map)
 }
 
+/// Matches the first [`Token`] from token_map in the input_string.
 fn match_token<'a>(
     token_map: &TokenMap,
     input_string: &'a str,
@@ -187,6 +218,7 @@ fn match_token<'a>(
     }))
 }
 
+/// Generates a [`Vec<Token>`] representing the input_string from the token_map.
 fn lex_string(token_map: &TokenMap, input_string: &str) -> Result<Vec<Token>, LexicalError> {
     let mut token_stream: Vec<Token> = Vec::new();
     let mut remaining_input_string = input_string;
