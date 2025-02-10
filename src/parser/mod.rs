@@ -40,7 +40,7 @@ enum SyntacticError {
 }
 
 #[derive(Debug, PartialEq)]
-enum Expression {
+pub enum Expression {
     Concatenation(Vec<Box<Expression>>),
     Choice(Vec<Box<Expression>>),
     Closure(Box<Expression>),
