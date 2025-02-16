@@ -64,7 +64,7 @@ fn test_empty_string_expression_annotation() {
 }
 
 #[test]
-fn test_concatenation_annotation() {
+fn test_concatenation_expression_annotation() {
     let input = Expression::Concatenation(vec![Expression::Char('a'), Expression::Char('b')]);
     let expected_annotated_expression = AnnotatedExpression {
         expression: AnnotatedExpressionType::Concatenation(vec![
@@ -90,7 +90,7 @@ fn test_concatenation_annotation() {
 }
 
 #[test]
-fn test_nullable_choice_annotation() {
+fn test_nullable_choice_expression_annotation() {
     let input = Expression::Choice(vec![Expression::EmptyString, Expression::Char('a')]);
     let expected_annotated_expression = AnnotatedExpression {
         expression: AnnotatedExpressionType::Choice(vec![
@@ -116,7 +116,7 @@ fn test_nullable_choice_annotation() {
 }
 
 #[test]
-fn test_not_nullable_choice_annotation() {
+fn test_not_nullable_choice_expression_annotation() {
     let input = Expression::Choice(vec![Expression::Char('a'), Expression::Char('b')]);
     let expected_annotated_expression = AnnotatedExpression {
         expression: AnnotatedExpressionType::Choice(vec![
@@ -142,7 +142,7 @@ fn test_not_nullable_choice_annotation() {
 }
 
 #[test]
-fn test_closure_annotation() {
+fn test_closure_expression_annotation() {
     let input = Expression::Closure(Box::from(Expression::Char('a')));
     let expected_annotated_expression = AnnotatedExpression {
         expression: AnnotatedExpressionType::Closure(Rc::from(AnnotatedExpression {
