@@ -1,12 +1,4 @@
 //! Annotates an AST of [`Expression`] nodes for transformation.
-//!
-//! The annotated nodes are represented by [`AnnotatedExpression`]:
-//! //! - expression: [`AnnotatedExpressionType`]; Representing the expression tree.
-//! - is_nullable; Representing whether this expression matches the empty string.
-//! - matches_start; Representing the leaf nodes of this expression which could match
-//!   the start of a string accepted by this expression.
-//! - matches_end; Representing the leaf nodes which could match the end of a string
-//!   accepted by this expression.
 
 use crate::parser::Expression;
 use std::{
