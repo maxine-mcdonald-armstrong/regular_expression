@@ -1,6 +1,12 @@
 //! Annotates an AST of [`Expression`] nodes for transformation.
 //!
-//! The annotated nodes are represented by [`AnnotatedExpression`].
+//! The annotated nodes are represented by [`AnnotatedExpression`]:
+//! //! - expression: [`AnnotatedExpressionType`]; Representing the expression tree.
+//! - is_nullable; Representing whether this expression matches the empty string.
+//! - matches_start; Representing the leaf nodes of this expression which could match
+//!   the start of a string accepted by this expression.
+//! - matches_end; Representing the leaf nodes which could match the end of a string
+//!   accepted by this expression.
 
 use crate::parser::Expression;
 use std::{
@@ -13,29 +19,42 @@ use std::{
 #[cfg(test)]
 mod tests;
 
+/// Represents the expression tree recursively.
 #[derive(Clone, Debug, PartialEq)]
 enum AnnotatedExpressionType<T> {
     Char(char, usize),
     EmptyString(usize),
+    /// Represents the end of the regular expression. This is only necessary for
+    /// creating the DFA.
     Terminal(usize),
     Closure(Rc<T>),
     Concatenation(Vec<Rc<T>>),
     Choice(Vec<Rc<T>>),
 }
 
+/// Represents an expression annotated as necessary for creating a DFA.
 #[derive(Clone, Debug, PartialEq)]
 struct AnnotatedExpression {
+    /// The expression itself.
     expression: AnnotatedExpressionType<AnnotatedExpression>,
+    /// Represents whether this expression matches the empty string.
     is_nullable: bool,
+    /// Represents the leaf nodes of this expression which could match the start of a
+    /// string accepted by this expression.
     matches_start: HashSet<usize>,
+    /// Represents the leaf nodes which could match the end of a string accepted by
+    /// this expression.
     matches_end: HashSet<usize>,
 }
 
+/// Stores an expression and a vector of the leaves of that expression, allowing 
+/// indexed access.
 struct AnnotatedExpressionContext {
     expression: Rc<AnnotatedExpression>,
     leaves: Vec<Rc<AnnotatedExpression>>,
 }
 
+/// Raised if the number of leaf nodes exceeds the capacity of a vector.
 #[derive(Debug, PartialEq)]
 struct NodeOverflowError {
     size: usize,
@@ -51,6 +70,7 @@ impl Display for NodeOverflowError {
     }
 }
 
+/// Raised if the input expression is invalid.
 #[derive(Debug, PartialEq)]
 struct InvalidExpressionError {}
 
@@ -60,12 +80,14 @@ impl Display for InvalidExpressionError {
     }
 }
 
+/// Wraps all annotator-based errors.
 #[derive(Debug, PartialEq)]
 enum AnnotationError {
     NodeOverflow(NodeOverflowError),
     InvalidExpression(InvalidExpressionError),
 }
 
+/// Recursively annotates an input expression.
 fn annotate_expression(
     expression: Expression,
     next_index: &mut usize,
@@ -192,6 +214,7 @@ fn annotate_expression(
     }
 }
 
+/// Annotates a complete input expression, adding a terminal node at the end.
 fn annotate_ast(root_node: Expression) -> Result<AnnotatedExpressionContext, AnnotationError> {
     let expression = annotate_expression(root_node, &mut 0, vec![])?;
     if expression.leaves.len() + 1 == 0 {
