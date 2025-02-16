@@ -1,4 +1,4 @@
-//! Generates an AST from a [`Token`] stream.
+//! Generates an AST of [`Expression`] nodes from a [`Token`] stream.
 
 use crate::lexer::ReservedToken;
 use crate::lexer::Token;

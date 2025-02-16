@@ -1,6 +1,6 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
-mod dfa;
+mod annotator;
 mod lexer;
 mod parser;

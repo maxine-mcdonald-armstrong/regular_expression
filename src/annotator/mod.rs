@@ -1,0 +1,229 @@
+//! Annotates an AST of [`Expression`] nodes for transformation.
+//!
+//! The annotated nodes are represented by [`AnnotatedExpression`].
+
+use crate::parser::Expression;
+use std::{
+    collections::HashSet,
+    fmt::{Display, Formatter},
+    rc::Rc,
+    vec,
+};
+
+#[cfg(test)]
+mod tests;
+
+#[derive(Clone, Debug, PartialEq)]
+enum AnnotatedExpressionType<T> {
+    Char(char, usize),
+    EmptyString(usize),
+    Terminal(usize),
+    Closure(Rc<T>),
+    Concatenation(Vec<Rc<T>>),
+    Choice(Vec<Rc<T>>),
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct AnnotatedExpression {
+    expression: AnnotatedExpressionType<AnnotatedExpression>,
+    is_nullable: bool,
+    matches_start: HashSet<usize>,
+    matches_end: HashSet<usize>,
+}
+
+struct AnnotatedExpressionContext {
+    expression: Rc<AnnotatedExpression>,
+    leaves: Vec<Rc<AnnotatedExpression>>,
+}
+
+#[derive(Debug, PartialEq)]
+struct NodeOverflowError {
+    size: usize,
+}
+
+impl Display for NodeOverflowError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(
+            f,
+            "The generated AST has too many leaf nodes, >{}.",
+            self.size
+        )
+    }
+}
+
+#[derive(Debug, PartialEq)]
+struct InvalidExpressionError {}
+
+impl Display for InvalidExpressionError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "The generated AST includes an invalid expression.",)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+enum AnnotationError {
+    NodeOverflow(NodeOverflowError),
+    InvalidExpression(InvalidExpressionError),
+}
+
+fn annotate_expression(
+    expression: Expression,
+    next_index: &mut usize,
+    leaves: Vec<Rc<AnnotatedExpression>>,
+) -> Result<AnnotatedExpressionContext, AnnotationError> {
+    match expression {
+        Expression::Char(c) => {
+            let next_expression = Rc::from(AnnotatedExpression {
+                expression: AnnotatedExpressionType::Char(c, *next_index),
+                is_nullable: false,
+                matches_start: HashSet::from([*next_index]),
+                matches_end: HashSet::from([*next_index]),
+            });
+            *next_index += 1;
+            let mut next_leaves = leaves;
+            next_leaves.push(Rc::clone(&next_expression));
+            match next_index {
+                0 => Err(AnnotationError::NodeOverflow(NodeOverflowError {
+                    size: *next_index - 1,
+                })),
+                _ => Ok(AnnotatedExpressionContext {
+                    expression: Rc::clone(&next_expression),
+                    leaves: next_leaves,
+                }),
+            }
+        }
+        Expression::EmptyString => {
+            let next_expression = Rc::from(AnnotatedExpression {
+                expression: AnnotatedExpressionType::EmptyString(*next_index),
+                is_nullable: true,
+                matches_start: HashSet::new(),
+                matches_end: HashSet::new(),
+            });
+            *next_index += 1;
+            let mut next_leaves = leaves;
+            next_leaves.push(Rc::clone(&next_expression));
+            match next_index {
+                0 => Err(AnnotationError::NodeOverflow(NodeOverflowError {
+                    size: *next_index - 1,
+                })),
+                _ => Ok(AnnotatedExpressionContext {
+                    expression: Rc::clone(&next_expression),
+                    leaves: next_leaves,
+                }),
+            }
+        }
+        Expression::Closure(sub_expression) => {
+            let internal_expression = annotate_expression(*sub_expression, next_index, leaves)?;
+            let next_expression = Rc::from(AnnotatedExpression {
+                expression: AnnotatedExpressionType::Closure(Rc::clone(
+                    &internal_expression.expression,
+                )),
+                is_nullable: true,
+                matches_start: internal_expression.expression.matches_start.clone(),
+                matches_end: internal_expression.expression.matches_start.clone(),
+            });
+            Ok(AnnotatedExpressionContext {
+                expression: next_expression,
+                leaves: internal_expression.leaves,
+            })
+        }
+        Expression::Choice(sub_expressions) => {
+            let mut internal_expressions = vec![];
+            let mut is_nullable = false;
+            let mut start_positions = HashSet::new();
+            let mut end_positions = HashSet::new();
+            let mut next_leaves = leaves;
+            for internal_expression in sub_expressions {
+                let next_expression =
+                    annotate_expression(internal_expression, next_index, next_leaves)?;
+                internal_expressions.push(Rc::clone(&next_expression.expression));
+                is_nullable = is_nullable || next_expression.expression.is_nullable;
+                start_positions.extend(next_expression.expression.matches_start.clone());
+                end_positions.extend(next_expression.expression.matches_end.clone());
+                next_leaves = next_expression.leaves;
+            }
+            let next_expression = Rc::from(AnnotatedExpression {
+                expression: AnnotatedExpressionType::Choice(internal_expressions),
+                is_nullable,
+                matches_start: start_positions,
+                matches_end: end_positions,
+            });
+            Ok(AnnotatedExpressionContext {
+                expression: next_expression,
+                leaves: next_leaves,
+            })
+        }
+        Expression::Concatenation(sub_expressions) => {
+            let l = sub_expressions.len();
+            if l == 0 {
+                return Err(AnnotationError::InvalidExpression(
+                    InvalidExpressionError {},
+                ));
+            }
+            let mut internal_expressions = vec![];
+            let mut is_nullable = true;
+            let mut next_leaves = leaves;
+            let mut matches_start = HashSet::new();
+            let mut matches_end = HashSet::new();
+            for (i, internal_expression) in sub_expressions.into_iter().enumerate() {
+                let next_expression =
+                    annotate_expression(internal_expression, next_index, next_leaves)?;
+                internal_expressions.push(Rc::clone(&next_expression.expression));
+                is_nullable = is_nullable && next_expression.expression.is_nullable;
+                if i == 0 {
+                    matches_start = next_expression.expression.matches_start.clone();
+                }
+                if i == l - 1 {
+                    matches_end = next_expression.expression.matches_end.clone();
+                }
+                next_leaves = next_expression.leaves;
+            }
+            let next_expression = Rc::from(AnnotatedExpression {
+                expression: AnnotatedExpressionType::Concatenation(internal_expressions),
+                is_nullable,
+                matches_start,
+                matches_end,
+            });
+            Ok(AnnotatedExpressionContext {
+                expression: next_expression,
+                leaves: next_leaves,
+            })
+        }
+    }
+}
+
+fn annotate_ast(root_node: Expression) -> Result<AnnotatedExpressionContext, AnnotationError> {
+    let expression = annotate_expression(root_node, &mut 0, vec![])?;
+    if expression.leaves.len() + 1 == 0 {
+        return Err(AnnotationError::NodeOverflow(NodeOverflowError {
+            size: expression.leaves.len(),
+        }));
+    }
+    let terminal = Rc::from(AnnotatedExpression {
+        expression: AnnotatedExpressionType::Terminal(expression.leaves.len()),
+        is_nullable: false,
+        matches_start: HashSet::from([expression.leaves.len()]),
+        matches_end: HashSet::from([expression.leaves.len()]),
+    });
+    let mut combined_matches_start = HashSet::new();
+    combined_matches_start.extend(expression.expression.matches_start.clone());
+    combined_matches_start.extend(terminal.matches_start.clone());
+    let mut combined_matches_end = HashSet::new();
+    combined_matches_end.extend(expression.expression.matches_end.clone());
+    combined_matches_end.extend(terminal.matches_end.clone());
+    let combined_expression = Rc::from(AnnotatedExpression {
+        expression: AnnotatedExpressionType::Concatenation(vec![
+            Rc::clone(&expression.expression),
+            Rc::clone(&terminal),
+        ]),
+        is_nullable: false,
+        matches_start: combined_matches_start,
+        matches_end: combined_matches_end,
+    });
+    let mut next_leaves = expression.leaves;
+    next_leaves.push(Rc::clone(&terminal));
+    Ok(AnnotatedExpressionContext {
+        expression: Rc::clone(&combined_expression),
+        leaves: next_leaves,
+    })
+}
