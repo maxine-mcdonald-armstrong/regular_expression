@@ -1,4 +1,4 @@
-//! Generates an AST from a [`Token`] stream.
+//! Generates an AST of [`Expression`] nodes from a [`Token`] stream.
 
 use crate::lexer::ReservedToken;
 use crate::lexer::Token;
@@ -53,7 +53,7 @@ enum SyntacticError {
 ///
 /// [`Expression::EmptyString`] and [`Expression::Char`] are always and the only leaf nodes.
 #[derive(Debug, PartialEq)]
-enum Expression {
+pub enum Expression {
     Concatenation(Vec<Expression>),
     Choice(Vec<Expression>),
     Closure(Box<Expression>),
