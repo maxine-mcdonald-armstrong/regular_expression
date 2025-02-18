@@ -8,18 +8,18 @@ mod tests;
 
 /// Represents a DFA
 #[derive(Debug, PartialEq)]
-struct Dfa {
+pub struct Dfa {
     /// The number of states in the DFA. The states of the DFA are thus 0..n_states.
-    n_states: usize,
+    pub(crate) n_states: usize,
     /// The starting state of the DFA.
-    start_state: usize,
+    pub(crate) start_state: usize,
     /// A set of accepting states. If, after consuming an input string, the DFA is at an
     /// accepting state, then it accepts the input string, otherwise it rejects it.
-    accepting_states: HashSet<usize>,
+    pub(crate) accepting_states: HashSet<usize>,
     /// The transition function from state X alphabet -> state. If an entry does not
     /// exist for state n, char c then this implies that the DFA rejects any word
     /// which follows that path.
-    transition_function: HashMap<usize, HashMap<char, usize>>,
+    pub(crate) transition_function: HashMap<usize, HashMap<char, usize>>,
 }
 
 /// calculate_matches_next(e)[i] is a set of the leaf nodes which will match the first
@@ -57,7 +57,7 @@ fn calculate_matches_next(
 }
 
 /// Generates a DFA from an input annotated expression with leaf context.
-fn generate_dfa(expression: AnnotatedExpressionContext) -> Dfa {
+pub(crate) fn generate_dfa(expression: AnnotatedExpressionContext) -> Dfa {
     let mut matches_next = vec![HashSet::<usize>::new(); expression.leaves.len()];
     let mut unmarked_states_map = HashMap::new();
     let mut marked_states_map = HashMap::new();
