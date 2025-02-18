@@ -25,7 +25,6 @@ fn calculate_matches_next(
             for sub_expression in sub_expressions {
                 calculate_matches_next(sub_expression, matches_next);
             }
-            if sub_expressions.len() < 2 {}
             for i in 0..sub_expressions.len() - 1 {
                 let prev_expression = &sub_expressions[i];
                 let next_expression = &sub_expressions[i + 1];
@@ -72,15 +71,12 @@ fn generate_dfa(expression: AnnotatedExpressionContext, alphabet: HashSet<char>)
         let unmarked_state = unmarked_states_map.keys().next().unwrap().clone();
         let unmarked_state_index = unmarked_states_map.remove(&unmarked_state).unwrap();
         marked_states_map.insert(unmarked_state.clone(), unmarked_state_index);
-        let mut grouped_by_char = HashMap::new();
+        let mut grouped_by_char: HashMap<char, Vec<usize>> = HashMap::new();
         for leaf_index in unmarked_state {
-            match &expression.leaves[leaf_index].expression {
-                AnnotatedExpressionType::Char(c, i) => {
-                    for k in &matches_next[*i] {
-                        grouped_by_char.entry(*c).or_insert(Vec::new()).push(*k);
-                    }
+            if let AnnotatedExpressionType::Char(c, i) = &expression.leaves[leaf_index].expression {
+                for k in &matches_next[*i] {
+                    grouped_by_char.entry(*c).or_default().push(*k);
                 }
-                _ => {}
             }
         }
         for (c, char_leaves) in grouped_by_char {
@@ -111,7 +107,7 @@ fn generate_dfa(expression: AnnotatedExpressionContext, alphabet: HashSet<char>)
             }
             dfa.transition_function
                 .entry(unmarked_state_index)
-                .or_insert(HashMap::new())
+                .or_default()
                 .insert(c, target_state_index);
         }
     }
