@@ -324,8 +324,22 @@ fn test_redundant_parentheses() {
 }
 
 #[test]
-fn test_empty_string_concatenation() {
+fn test_concatenated_char_and_empty_string() {
     let input_expression = "a()";
+    let input_alphabet = "ab";
+    let expected_output = dfa::Dfa {
+        n_states: 2,
+        start_state: 0,
+        accepting_states: HashSet::from([1]),
+        transition_function: HashMap::from([(0, HashMap::from([('a', 1)]))]),
+    };
+    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    assert_eq!(output, expected_output);
+}
+
+#[test]
+fn test_concatenated_empty_string_and_char() {
+    let input_expression = "()a";
     let input_alphabet = "ab";
     let expected_output = dfa::Dfa {
         n_states: 2,
