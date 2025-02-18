@@ -7,7 +7,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 mod tests;
 
 /// Represents a DFA
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct Dfa {
     /// The number of states in the DFA. The states of the DFA are thus 0..n_states.
     n_states: usize,
