@@ -1,16 +1,24 @@
+//! Generates a DFA from [`AnnotatedExpressionContext`].
+
 use crate::annotator::{AnnotatedExpression, AnnotatedExpressionContext, AnnotatedExpressionType};
 use std::collections::{BTreeSet, HashMap, HashSet};
 
 #[cfg(test)]
 mod tests;
 
+/// Represents a DFA
 #[derive(Debug)]
 struct Dfa {
-    states: Vec<BTreeSet<usize>>,
-    alphabet: HashSet<char>,
+    /// The number of states in the DFA. The states of the DFA are thus 0..n_states.
+    n_states: usize,
+    /// The starting state of the DFA.
     start_state: usize,
+    /// A set of accepting states. If, after consuming an input string, the DFA is at an
+    /// accepting state, then it accepts the input string, otherwise it rejects it.
     accepting_states: HashSet<usize>,
-    /// The transition function from state X alphabet -> state
+    /// The transition function from state X alphabet -> state. If an entry does not
+    /// exist for state n, char c then this implies that the DFA rejects any word
+    /// which follows that path.
     transition_function: HashMap<usize, HashMap<char, usize>>,
 }
 
@@ -48,20 +56,20 @@ fn calculate_matches_next(
     }
 }
 
-fn generate_dfa(expression: AnnotatedExpressionContext, alphabet: HashSet<char>) -> Dfa {
+/// Generates a DFA from an input annotated expression with leaf context.
+fn generate_dfa(expression: AnnotatedExpressionContext) -> Dfa {
     let mut matches_next = vec![HashSet::<usize>::new(); expression.leaves.len()];
     let mut unmarked_states_map = HashMap::new();
     let mut marked_states_map = HashMap::new();
     let mut dfa = Dfa {
-        states: Vec::new(),
-        alphabet,
+        n_states: 0,
         start_state: 0,
         accepting_states: HashSet::new(),
         transition_function: HashMap::new(),
     };
     calculate_matches_next(&expression.expression, &mut matches_next);
     let initial_state = BTreeSet::from_iter(expression.expression.matches_start.iter().copied());
-    dfa.states.push(initial_state.clone());
+    dfa.n_states = 1;
     if initial_state.contains(&(expression.leaves.len() - 1)) {
         dfa.accepting_states.insert(0);
     }
@@ -94,7 +102,7 @@ fn generate_dfa(expression: AnnotatedExpressionContext, alphabet: HashSet<char>)
                 unmarked_states_map
                     .entry(target_state.clone())
                     .or_insert(next_state_index);
-                dfa.states.push(target_state.clone());
+                dfa.n_states += 1;
                 target_state_index = next_state_index;
                 next_state_index += 1;
             } else if unmarked_states_map.contains_key(&target_state) {
