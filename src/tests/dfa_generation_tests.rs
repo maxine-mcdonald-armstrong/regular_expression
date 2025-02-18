@@ -199,7 +199,7 @@ fn test_invalid_choice_character_empty_string() {
 
 #[test]
 fn test_choice_empty_string_empty_string() {
-    let input_expression = "()|()";
+    let input_expression = "|()";
     let input_alphabet = "ab";
     let expected_output = dfa::Dfa {
         n_states: 1,
