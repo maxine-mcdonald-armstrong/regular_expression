@@ -13,7 +13,7 @@ mod tests;
 
 /// Represents the expression tree recursively.
 #[derive(Clone, Debug, PartialEq)]
-enum AnnotatedExpressionType<T> {
+pub enum AnnotatedExpressionType<T> {
     Char(char, usize),
     EmptyString(usize),
     /// Represents the end of the regular expression. This is only necessary for
@@ -26,24 +26,25 @@ enum AnnotatedExpressionType<T> {
 
 /// Represents an expression annotated as necessary for creating a DFA.
 #[derive(Clone, Debug, PartialEq)]
-struct AnnotatedExpression {
+pub struct AnnotatedExpression {
     /// The expression itself.
-    expression: AnnotatedExpressionType<AnnotatedExpression>,
+    pub expression: AnnotatedExpressionType<AnnotatedExpression>,
     /// Represents whether this expression matches the empty string.
-    is_nullable: bool,
+    pub is_nullable: bool,
     /// Represents the leaf nodes of this expression which could match the start of a
     /// string accepted by this expression.
-    matches_start: HashSet<usize>,
+    pub matches_start: HashSet<usize>,
     /// Represents the leaf nodes which could match the end of a string accepted by
     /// this expression.
-    matches_end: HashSet<usize>,
+    pub matches_end: HashSet<usize>,
 }
 
-/// Stores an expression and a vector of the leaves of that expression, allowing 
+#[derive(Debug)]
+/// Stores an expression and a vector of the leaves of that expression, allowing
 /// indexed access.
-struct AnnotatedExpressionContext {
-    expression: Rc<AnnotatedExpression>,
-    leaves: Vec<Rc<AnnotatedExpression>>,
+pub struct AnnotatedExpressionContext {
+    pub expression: Rc<AnnotatedExpression>,
+    pub leaves: Vec<Rc<AnnotatedExpression>>,
 }
 
 /// Raised if the number of leaf nodes exceeds the capacity of a vector.
@@ -74,7 +75,7 @@ impl Display for InvalidExpressionError {
 
 /// Wraps all annotator-based errors.
 #[derive(Debug, PartialEq)]
-enum AnnotationError {
+pub enum AnnotationError {
     NodeOverflow(NodeOverflowError),
     InvalidExpression(InvalidExpressionError),
 }
@@ -152,8 +153,8 @@ fn annotate_expression(
                     annotate_expression(internal_expression, next_index, next_leaves)?;
                 internal_expressions.push(Rc::clone(&next_expression.expression));
                 is_nullable = is_nullable || next_expression.expression.is_nullable;
-                start_positions.extend(next_expression.expression.matches_start.clone());
-                end_positions.extend(next_expression.expression.matches_end.clone());
+                start_positions.extend(next_expression.expression.matches_start.iter().copied());
+                end_positions.extend(next_expression.expression.matches_end.iter().copied());
                 next_leaves = next_expression.leaves;
             }
             let next_expression = Rc::from(AnnotatedExpression {
@@ -183,12 +184,14 @@ fn annotate_expression(
                 let next_expression =
                     annotate_expression(internal_expression, next_index, next_leaves)?;
                 internal_expressions.push(Rc::clone(&next_expression.expression));
-                is_nullable = is_nullable && next_expression.expression.is_nullable;
-                if i == 0 {
-                    matches_start = next_expression.expression.matches_start.clone();
+                if i == 0 || is_nullable {
+                    matches_start.extend(next_expression.expression.matches_start.clone());
                 }
-                if i == l - 1 {
-                    matches_end = next_expression.expression.matches_end.clone();
+                is_nullable = is_nullable && next_expression.expression.is_nullable;
+                if i == l - 1 || is_nullable {
+                    matches_end.extend(next_expression.expression.matches_end.clone());
+                } else {
+                    matches_end = HashSet::new();
                 }
                 next_leaves = next_expression.leaves;
             }
@@ -207,7 +210,7 @@ fn annotate_expression(
 }
 
 /// Annotates a complete input expression, adding a terminal node at the end.
-fn annotate_ast(root_node: Expression) -> Result<AnnotatedExpressionContext, AnnotationError> {
+pub fn annotate_ast(root_node: Expression) -> Result<AnnotatedExpressionContext, AnnotationError> {
     let expression = annotate_expression(root_node, &mut 0, vec![])?;
     if expression.leaves.len() + 1 == 0 {
         return Err(AnnotationError::NodeOverflow(NodeOverflowError {
@@ -221,11 +224,13 @@ fn annotate_ast(root_node: Expression) -> Result<AnnotatedExpressionContext, Ann
         matches_end: HashSet::from([expression.leaves.len()]),
     });
     let mut combined_matches_start = HashSet::new();
-    combined_matches_start.extend(expression.expression.matches_start.clone());
-    combined_matches_start.extend(terminal.matches_start.clone());
     let mut combined_matches_end = HashSet::new();
-    combined_matches_end.extend(expression.expression.matches_end.clone());
-    combined_matches_end.extend(terminal.matches_end.clone());
+    if expression.expression.is_nullable {
+        combined_matches_start.extend(terminal.matches_start.iter().copied());
+        combined_matches_end.extend(expression.expression.matches_end.iter().copied());
+    }
+    combined_matches_start.extend(expression.expression.matches_start.iter().copied());
+    combined_matches_end.extend(terminal.matches_end.iter().copied());
     let combined_expression = Rc::from(AnnotatedExpression {
         expression: AnnotatedExpressionType::Concatenation(vec![
             Rc::clone(&expression.expression),
