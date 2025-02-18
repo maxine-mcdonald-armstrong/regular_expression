@@ -12,7 +12,7 @@ fn test_empty_string() {
         accepting_states: HashSet::from([0]),
         transition_function: HashMap::new(),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -26,7 +26,7 @@ fn test_character() {
         accepting_states: HashSet::from([1]),
         transition_function: HashMap::from([(0, HashMap::from([('a', 1)]))]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -39,7 +39,7 @@ fn test_invalid_character() {
             unmatchable_char: 'z',
         },
     ));
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap_err();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap_err();
     assert_eq!(output, expected_output);
 }
 
@@ -53,7 +53,7 @@ fn test_closure_empty_string() {
         accepting_states: HashSet::from([0]),
         transition_function: HashMap::new(),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -70,7 +70,7 @@ fn test_invalid_closure_empty_string() {
             ],
         },
     ));
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap_err();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap_err();
     assert_eq!(output, expected_output);
 }
 
@@ -84,7 +84,7 @@ fn test_closure_closure_empty_string() {
         accepting_states: HashSet::from([0]),
         transition_function: HashMap::new(),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -102,7 +102,7 @@ fn test_invalid_closure_closure_empty_string() {
             ],
         },
     ));
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap_err();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap_err();
     assert_eq!(output, expected_output);
 }
 
@@ -116,7 +116,7 @@ fn test_closure_character() {
         accepting_states: HashSet::from([0]),
         transition_function: HashMap::from([(0, HashMap::from([('a', 0)]))]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -130,7 +130,7 @@ fn test_closure_closure_character() {
         accepting_states: HashSet::from([0]),
         transition_function: HashMap::from([(0, HashMap::from([('a', 0)]))]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -147,7 +147,7 @@ fn test_concatenated_closure_character() {
             (1, HashMap::from([('b', 1)])),
         ]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -164,7 +164,7 @@ fn test_concatenated_character_and_closure_character() {
             (1, HashMap::from([('b', 1)])),
         ]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -178,7 +178,7 @@ fn test_concatenated_closure_character_and_character() {
         accepting_states: HashSet::from([1]),
         transition_function: HashMap::from([(0, HashMap::from([('a', 0), ('b', 1)]))]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -195,7 +195,7 @@ fn test_closure_concatenation() {
             (1, HashMap::from([('b', 0)])),
         ]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -209,7 +209,7 @@ fn test_choice_character_character() {
         accepting_states: HashSet::from([1]),
         transition_function: HashMap::from([(0, HashMap::from([('a', 1), ('b', 1)]))]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -223,7 +223,7 @@ fn test_choice_character_empty_string() {
         accepting_states: HashSet::from([0, 1]),
         transition_function: HashMap::from([(0, HashMap::from([('a', 1)]))]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -239,7 +239,7 @@ fn test_invalid_choice_character_empty_string() {
             ],
         }),
     );
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap_err();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap_err();
     assert_eq!(output, expected_output);
 }
 
@@ -253,7 +253,7 @@ fn test_choice_empty_string_empty_string() {
         accepting_states: HashSet::from([0]),
         transition_function: HashMap::new(),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -269,7 +269,7 @@ fn test_invalid_choice_empty_string_empty_string() {
             ],
         }),
     );
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap_err();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap_err();
     assert_eq!(output, expected_output);
 }
 
@@ -286,7 +286,7 @@ fn test_choice_character_concatenation() {
             (1, HashMap::from([('b', 2)])),
         ]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -317,7 +317,7 @@ fn test_choice_concatenation_concatenation() {
             (2, HashMap::from([('b', 3)])),
         ]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert!(output == expected_output_a || output == expected_output_b);
 }
 
@@ -334,7 +334,7 @@ fn test_concatenated_choice_character() {
             (1, HashMap::from([('a', 2)])),
         ]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -351,7 +351,7 @@ fn test_concatenated_character_choice() {
             (1, HashMap::from([('a', 2), ('b', 2)])),
         ]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -365,7 +365,7 @@ fn test_redundant_parentheses() {
         accepting_states: HashSet::from([1]),
         transition_function: HashMap::from([(0, HashMap::from([('a', 1)]))]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -379,7 +379,7 @@ fn test_concatenated_char_and_empty_string() {
         accepting_states: HashSet::from([1]),
         transition_function: HashMap::from([(0, HashMap::from([('a', 1)]))]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
 
@@ -393,6 +393,6 @@ fn test_concatenated_empty_string_and_char() {
         accepting_states: HashSet::from([1]),
         transition_function: HashMap::from([(0, HashMap::from([('a', 1)]))]),
     };
-    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
 }
