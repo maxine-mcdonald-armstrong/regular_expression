@@ -49,7 +49,7 @@ pub struct AnnotatedExpressionContext {
 
 /// Raised if the number of leaf nodes exceeds the capacity of a vector.
 #[derive(Debug, PartialEq)]
-struct NodeOverflowError {
+pub struct NodeOverflowError {
     size: usize,
 }
 
@@ -65,7 +65,7 @@ impl Display for NodeOverflowError {
 
 /// Raised if the input expression is invalid.
 #[derive(Debug, PartialEq)]
-struct InvalidExpressionError {}
+pub struct InvalidExpressionError {}
 
 impl Display for InvalidExpressionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
