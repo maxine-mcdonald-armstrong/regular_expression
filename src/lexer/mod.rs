@@ -13,8 +13,8 @@ mod tests;
 
 /// Runtime error representing that the input string is not parsable to a [`Token`].
 #[derive(Debug, PartialEq)]
-struct CharacterParsingError {
-    unmatchable_char: char,
+pub struct CharacterParsingError {
+    pub(crate) unmatchable_char: char,
 }
 
 impl Display for CharacterParsingError {
@@ -29,7 +29,7 @@ impl Display for CharacterParsingError {
 
 /// Runtime error representing that the input alphabet overwrote some reserved [`Token`].
 #[derive(Debug, PartialEq)]
-struct ReservedTokenOverwriteError {
+pub struct ReservedTokenOverwriteError {
     overwritten_string: String,
     overwritten_token: Token,
 }
@@ -51,7 +51,7 @@ impl Display for ReservedTokenOverwriteError {
 /// development as there are open issues which may result in changes to the input alphabet,
 /// allowing it to contain arbitrary-length strings.
 #[derive(Debug, PartialEq)]
-struct PrefixPropertyViolationError {
+pub struct PrefixPropertyViolationError {
     contained_string: String,
     containing_string: String,
 }
@@ -68,7 +68,7 @@ impl Display for PrefixPropertyViolationError {
 
 /// Wraps all lexer-based errors.
 #[derive(Debug, PartialEq)]
-enum LexicalError {
+pub enum LexicalError {
     CharacterParsing(CharacterParsingError),
     ReservedTokenOverwrite(ReservedTokenOverwriteError),
     PrefixPropertyViolation(PrefixPropertyViolationError),
@@ -78,7 +78,7 @@ enum LexicalError {
 ///
 /// Constructor [`TokenMap::new`] ensures certain properties are met at runtime.
 #[derive(Debug)]
-struct TokenMap {
+pub(crate) struct TokenMap {
     token_map: HashMap<String, Token>,
 }
 
@@ -130,7 +130,7 @@ impl TokenMap {
 
 /// [`Token`]s that don't represent matches to characters in the user-defined alphabet.
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum ReservedToken {
+pub(crate) enum ReservedToken {
     Choice,
     Closure,
     LeftPrecedence,
@@ -154,7 +154,7 @@ impl Display for ReservedToken {
 /// char and [`Token`], but in the future this abstraction may help the parser by wrapping
 /// multi-char [`Token`]s.
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Token {
+pub(crate) enum Token {
     Char(char),
     ReservedToken(ReservedToken),
 }
@@ -191,7 +191,7 @@ fn generate_reserved_token_map() -> HashMap<String, Token> {
 }
 
 /// Generates a [`HashMap<String, Token>`] from an input [`str`] alphabet.
-fn generate_token_map(alphabet: &str) -> Result<TokenMap, LexicalError> {
+pub(crate) fn generate_token_map(alphabet: &str) -> Result<TokenMap, LexicalError> {
     let mut token_map = generate_reserved_token_map();
     for c in alphabet.chars() {
         token_map.insert(String::from(c), Token::Char(c));
@@ -215,7 +215,10 @@ fn match_token<'a>(
 }
 
 /// Generates a [`Vec<Token>`] representing the input_string from the token_map.
-fn lex_string(token_map: &TokenMap, input_string: &str) -> Result<Vec<Token>, LexicalError> {
+pub(crate) fn lex_string(
+    token_map: &TokenMap,
+    input_string: &str,
+) -> Result<Vec<Token>, LexicalError> {
     let mut token_stream: Vec<Token> = Vec::new();
     let mut remaining_input_string = input_string;
     while !remaining_input_string.is_empty() {

@@ -14,17 +14,17 @@ mod tests;
 /// For example, a [`ReservedToken::Choice`] Not followed by a valid [`Expression`], or a
 /// [`ReservedToken::LeftPrecedence`] without a matching [`ReservedToken::RightPrecedence`].
 #[derive(Debug, PartialEq)]
-struct MissingExpectedTokenError {
-    actual_token: Option<Token>,
-    expected_token: Token,
+pub struct MissingExpectedTokenError {
+    pub(crate) expected_tokens: Vec<Token>,
 }
 
 impl Display for MissingExpectedTokenError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        match self.actual_token {
-            None => write!(f, "Parser expected {} but found None", self.expected_token),
-            Some(t) => write!(f, "Parser expected {} but found {}", self.expected_token, t),
-        }
+        write!(
+            f,
+            "Parser expected any of {:?} but found None",
+            self.expected_tokens
+        )
     }
 }
 
@@ -32,19 +32,31 @@ impl Display for MissingExpectedTokenError {
 ///
 /// For example, a [`ReservedToken::Closure`] not after a non-empty [`Expression`].
 #[derive(Debug, PartialEq)]
-struct UnexpectedTokenError {
-    token: Token,
+pub struct UnexpectedTokenError {
+    pub(crate) token: Token,
+    pub(crate) expected_tokens: Vec<Token>,
 }
 
 impl Display for UnexpectedTokenError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        write!(f, "Parser received an unexpected token: {}.", self.token)
+        if self.expected_tokens.is_empty() {
+            return write!(
+                f,
+                "Parser received an unexpected token: {}. Expected end of expression.",
+                self.token
+            );
+        }
+        write!(
+            f,
+            "Parser received an unexpected token: {}. Expected one of {:?}",
+            self.token, self.expected_tokens
+        )
     }
 }
 
 /// Wraps all parser-based errors.
 #[derive(Debug, PartialEq)]
-enum SyntacticError {
+pub enum SyntacticError {
     UnexpectedToken(UnexpectedTokenError),
     MissingExpectedToken(MissingExpectedTokenError),
 }
@@ -79,16 +91,30 @@ where
                 Some(Token::ReservedToken(ReservedToken::RightPrecedence)) => Ok(expression),
                 None => Err(SyntacticError::MissingExpectedToken(
                     MissingExpectedTokenError {
-                        actual_token: None,
-                        expected_token: Token::ReservedToken(ReservedToken::RightPrecedence),
+                        expected_tokens: vec![Token::ReservedToken(ReservedToken::RightPrecedence)],
                     },
                 )),
                 Some(t) => Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
                     token: t,
+                    expected_tokens: Vec::new(),
                 })),
             }
         }
-        _ => Ok(Expression::EmptyString),
+        Some(t) => Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
+            token: *t,
+            expected_tokens: vec![
+                Token::Char('.'),
+                Token::ReservedToken(ReservedToken::LeftPrecedence),
+            ],
+        })),
+        None => Err(SyntacticError::MissingExpectedToken(
+            MissingExpectedTokenError {
+                expected_tokens: vec![
+                    Token::Char('.'),
+                    Token::ReservedToken(ReservedToken::LeftPrecedence),
+                ],
+            },
+        )),
     }
 }
 
@@ -97,12 +123,6 @@ fn parse_closure<I>(token_stream: &mut Peekable<I>) -> Result<Expression, Syntac
 where
     I: Iterator<Item = Token>,
 {
-    if token_stream.peek() == Some(&Token::ReservedToken(ReservedToken::Closure)) {
-        // Closure acting on empty string is disallowed
-        return Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
-            token: Token::ReservedToken(ReservedToken::Closure),
-        }));
-    }
     let atomic = parse_atomic(token_stream)?;
     match token_stream.peek() {
         Some(Token::ReservedToken(ReservedToken::Closure)) => {
@@ -141,6 +161,11 @@ where
             t => {
                 return Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
                     token: *t,
+                    expected_tokens: vec![
+                        Token::ReservedToken(ReservedToken::Choice),
+                        Token::ReservedToken(ReservedToken::RightPrecedence),
+                        Token::Char('.'),
+                    ],
                 }));
             }
         }
@@ -153,13 +178,29 @@ fn parse_choice<I>(token_stream: &mut Peekable<I>) -> Result<Expression, Syntact
 where
     I: Iterator<Item = Token>,
 {
-    let juxtaposition = parse_concatenation(token_stream)?;
+    let concatenation = match parse_concatenation(token_stream) {
+        // case where Expression is nothing: ""
+        Err(SyntacticError::MissingExpectedToken(MissingExpectedTokenError {
+            expected_tokens: _,
+        })) => Ok(Expression::EmptyString),
+        // case where Choice contains left empty string, e.g. "|a"
+        Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
+            token: Token::ReservedToken(ReservedToken::Choice),
+            expected_tokens: _,
+        })) => Ok(Expression::EmptyString),
+        // case where Choice contains nothing, e.g. "()".
+        Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
+            token: Token::ReservedToken(ReservedToken::RightPrecedence),
+            expected_tokens: _,
+        })) => Ok(Expression::EmptyString),
+        t => t,
+    }?;
     if token_stream.peek().is_none()
         || token_stream.peek() == Some(&Token::ReservedToken(ReservedToken::RightPrecedence))
     {
-        return Ok(juxtaposition);
+        return Ok(concatenation);
     }
-    let mut choice: Vec<Expression> = Vec::from([juxtaposition]);
+    let mut choice: Vec<Expression> = Vec::from([concatenation]);
     while token_stream.peek().is_some() {
         match token_stream.peek().unwrap() {
             Token::ReservedToken(ReservedToken::Choice) => {
@@ -167,12 +208,15 @@ where
                 choice.push(parse_concatenation(token_stream)?);
             }
             Token::ReservedToken(ReservedToken::RightPrecedence) => {
-                token_stream.next();
                 break;
             }
             t => {
                 return Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
                     token: *t,
+                    expected_tokens: vec![
+                        Token::ReservedToken(ReservedToken::Choice),
+                        Token::ReservedToken(ReservedToken::RightPrecedence),
+                    ],
                 }));
             }
         }
@@ -192,13 +236,14 @@ where
 }
 
 /// Generates the root of an AST representing the token_stream.
-fn parse(token_stream: Vec<Token>) -> Result<Expression, SyntacticError> {
+pub(crate) fn parse(token_stream: Vec<Token>) -> Result<Expression, SyntacticError> {
     let mut token_stream_iterable = token_stream.into_iter().peekable();
     let expression = parse_expression(&mut token_stream_iterable)?;
     match token_stream_iterable.next() {
         None => Ok(expression),
         Some(t) => Err(SyntacticError::UnexpectedToken(UnexpectedTokenError {
             token: t,
+            expected_tokens: Vec::new(),
         })),
     }
 }

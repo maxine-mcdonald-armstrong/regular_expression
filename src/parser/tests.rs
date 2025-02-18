@@ -46,6 +46,10 @@ fn test_closure_fails_on_empty_string() {
     let test_input = vec![Token::ReservedToken(ReservedToken::Closure)];
     let expected_output = SyntacticError::UnexpectedToken(UnexpectedTokenError {
         token: Token::ReservedToken(ReservedToken::Closure),
+        expected_tokens: vec![
+            Token::Char('.'),
+            Token::ReservedToken(ReservedToken::LeftPrecedence),
+        ],
     });
     assert_eq!(parse(test_input).unwrap_err(), expected_output);
 }
@@ -123,15 +127,8 @@ fn test_choice_on_concatenation() {
 fn test_choice_on_empty_string() {
     let test_input = vec![
         Token::ReservedToken(ReservedToken::Choice),
-        Token::ReservedToken(ReservedToken::Choice),
         Token::Char('a'),
-        Token::ReservedToken(ReservedToken::Choice),
     ];
-    let expected_output = Expression::Choice(vec![
-        Expression::EmptyString,
-        Expression::EmptyString,
-        Expression::Char('a'),
-        Expression::EmptyString,
-    ]);
+    let expected_output = Expression::Choice(vec![Expression::EmptyString, Expression::Char('a')]);
     assert_eq!(parse(test_input).unwrap(), expected_output);
 }
