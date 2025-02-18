@@ -63,6 +63,9 @@ fn generate_dfa(expression: AnnotatedExpressionContext, alphabet: HashSet<char>)
     calculate_matches_next(&expression.expression, &mut matches_next);
     let initial_state = BTreeSet::from_iter(expression.expression.matches_start.iter().copied());
     dfa.states.push(initial_state.clone());
+    if initial_state.contains(&(expression.leaves.len() - 1)) {
+        dfa.accepting_states.insert(0);
+    }
     unmarked_states_map.insert(initial_state, 0);
     let mut next_state_index = 1;
     while !unmarked_states_map.is_empty() {

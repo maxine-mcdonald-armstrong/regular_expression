@@ -25,11 +25,5 @@ fn test_calculates_matches_next() {
     let annotated_input = annotate_ast(input).unwrap();
     let mut matches_next = vec![HashSet::<usize>::new(); 6];
     calculate_matches_next(&annotated_input.expression, &mut matches_next);
-    println!("{:?}", annotated_input);
-    println!("{:?}", matches_next);
-    println!(
-        "{:?}",
-        generate_dfa(annotated_input, HashSet::from(['a', 'b']))
-    );
     assert_eq!(matches_next, expected_output);
 }
