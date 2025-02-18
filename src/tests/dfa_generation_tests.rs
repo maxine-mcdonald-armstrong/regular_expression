@@ -75,8 +75,54 @@ fn test_invalid_closure_empty_string() {
 }
 
 #[test]
+fn test_closure_closure_empty_string() {
+    let input_expression = "(()*)*";
+    let input_alphabet = "";
+    let expected_output = dfa::Dfa {
+        n_states: 1,
+        start_state: 0,
+        accepting_states: HashSet::from([0]),
+        transition_function: HashMap::new(),
+    };
+    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    assert_eq!(output, expected_output);
+}
+
+#[test]
+fn test_invalid_closure_closure_empty_string() {
+    let input_expression = "()**";
+    let input_alphabet = "";
+    let expected_output = DfaGenerationError::Syntactic(parser::SyntacticError::UnexpectedToken(
+        parser::UnexpectedTokenError {
+            token: lexer::Token::ReservedToken(lexer::ReservedToken::Closure),
+            expected_tokens: vec![
+                lexer::Token::ReservedToken(lexer::ReservedToken::Choice),
+                lexer::Token::ReservedToken(lexer::ReservedToken::RightPrecedence),
+                lexer::Token::Char('.'),
+            ],
+        },
+    ));
+    let output = generate_dfa(&input_expression, &input_alphabet).unwrap_err();
+    assert_eq!(output, expected_output);
+}
+
+#[test]
 fn test_closure_character() {
     let input_expression = "a*";
+    let input_alphabet = "ab";
+    let expected_output = dfa::Dfa {
+        n_states: 1,
+        start_state: 0,
+        accepting_states: HashSet::from([0]),
+        transition_function: HashMap::from([(0, HashMap::from([('a', 0)]))]),
+    };
+    let output = generate_dfa(&input_expression, &input_alphabet).unwrap();
+    assert_eq!(output, expected_output);
+}
+
+#[test]
+fn test_closure_closure_character() {
+    let input_expression = "(a*)*";
     let input_alphabet = "ab";
     let expected_output = dfa::Dfa {
         n_states: 1,
