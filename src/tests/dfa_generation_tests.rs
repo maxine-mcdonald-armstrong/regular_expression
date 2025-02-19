@@ -200,6 +200,54 @@ fn test_closure_concatenation() {
 }
 
 #[test]
+fn test_multiple_concatenated_closures() {
+    // This test needs to check many possible outputs, because DFA generated depends on
+    // a random access to a HashMap and thus could follow one of many branches first.
+    let input_expression = "ab*c*d";
+    let input_alphabet = "abcd";
+    let expected_output_a = dfa::Dfa {
+        n_states: 4,
+        start_state: 0,
+        accepting_states: HashSet::from([3]),
+        transition_function: HashMap::from([
+            (0, HashMap::from([('a', 1)])),
+            (1, HashMap::from([('b', 1), ('c', 2), ('d', 3)])),
+            (2, HashMap::from([('c', 2), ('d', 3)])),
+        ]),
+    };
+    let expected_output_b = dfa::Dfa {
+        n_states: 4,
+        start_state: 0,
+        accepting_states: HashSet::from([2]),
+        transition_function: HashMap::from([
+            (0, HashMap::from([('a', 1)])),
+            (1, HashMap::from([('b', 1), ('d', 2), ('c', 3)])),
+            (3, HashMap::from([('c', 3), ('d', 2)])),
+        ]),
+    };
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
+    assert!(output == expected_output_a || output == expected_output_b);
+}
+
+#[test]
+fn test_concatenated_choice_closure() {
+    let input_expression = "a(a|b)*b";
+    let input_alphabet = "ab";
+    let expected_output = dfa::Dfa {
+        n_states: 3,
+        start_state: 0,
+        accepting_states: HashSet::from([2]),
+        transition_function: HashMap::from([
+            (0, HashMap::from([('a', 1)])),
+            (1, HashMap::from([('a', 1), ('b', 2)])),
+            (2, HashMap::from([('a', 1), ('b', 2)])),
+        ]),
+    };
+    let output = generate_dfa(input_expression, input_alphabet).unwrap();
+    assert_eq!(output, expected_output);
+}
+
+#[test]
 fn test_choice_character_character() {
     let input_expression = "a|b";
     let input_alphabet = "ab";
@@ -395,34 +443,4 @@ fn test_concatenated_empty_string_and_char() {
     };
     let output = generate_dfa(input_expression, input_alphabet).unwrap();
     assert_eq!(output, expected_output);
-}
-
-#[test]
-fn test_nullable_concatenation() {
-    // This test needs to check many possible outputs, because DFA generated depends on
-    // a random access to a HashMap and thus could follow one of many branches first.
-    let input_expression = "ab*c*d";
-    let input_alphabet = "abcd";
-    let expected_output_a = dfa::Dfa {
-        n_states: 4,
-        start_state: 0,
-        accepting_states: HashSet::from([3]),
-        transition_function: HashMap::from([
-            (0, HashMap::from([('a', 1)])),
-            (1, HashMap::from([('b', 1), ('c', 2), ('d', 3)])),
-            (2, HashMap::from([('c', 2), ('d', 3)])),
-        ]),
-    };
-    let expected_output_b = dfa::Dfa {
-        n_states: 4,
-        start_state: 0,
-        accepting_states: HashSet::from([2]),
-        transition_function: HashMap::from([
-            (0, HashMap::from([('a', 1)])),
-            (1, HashMap::from([('b', 1), ('d', 2), ('c', 3)])),
-            (3, HashMap::from([('c', 3), ('d', 2)])),
-        ]),
-    };
-    let output = generate_dfa(input_expression, input_alphabet).unwrap();
-    assert!(output == expected_output_a || output == expected_output_b);
 }
