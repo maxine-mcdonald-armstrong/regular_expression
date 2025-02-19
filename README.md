@@ -42,7 +42,7 @@ RIGHT_PRECEDENCE    ::= ")"
 The semantics of the regular expressions admitted by this crate are represented below in denotational semantics, mapping regular expressions to the set of strings they accept.
 A statement of the form $\left[\\!\left[ E \right]\\!\right] = V$ denotes a mapping between the expression $E$ and the mathematical object $V$.
 
-Aside from the common set operations, let us define $A \times B = \left\\{ab\\ \vert a \in A \wedge b \in B\right\\}$ for sets of strings $A, B$ where juxtaposition in $ab$ represents string concatenation.
+Aside from the common set operations, let us define $A \times B = \left\\{ab\\ \vert a \in A \wedge b \in B\right\\}$ for sets of strings $A, B$ where juxtaposition in $ab$ represents string concatenation. Similarly, let $E^n, n \in \mathbb{N}$ denote repeated concatenation of $n$ copies of $E$, and let $E^0 = \left\\{\epsilon\right\\}$
 
 Let $\epsilon$ represent the empty string.
 
@@ -60,4 +60,4 @@ $$\left[\\!\left[ AB \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \ti
 
 $$\left[\\!\left[ A|B \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \cup \left[\\!\left[ B \right]\\!\right]$$
 
-$$\left[\\!\left[ A^* \right]\\!\right] = \bigcup_{n \in \mathbf{N}} \left[\\!\left[ A \right]\\!\right]^n \cup \left\\{\epsilon\right\\}$$
+$$\left[\\!\left[ A^* \right]\\!\right] = \bigcup_{n \in \mathbb{N}_0} \left[\\!\left[ A \right]\\!\right]^n$$
