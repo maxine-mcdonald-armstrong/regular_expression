@@ -22,6 +22,24 @@ pub struct Dfa {
     pub(crate) transition_function: HashMap<usize, HashMap<char, usize>>,
 }
 
+impl Dfa {
+    pub fn evaluate(&self, input: &str) -> bool {
+        let mut state = self.start_state;
+        for c in input.chars() {
+            if let Some(s) = self.transition_function.get(&state) {
+                if let Some(t) = s.get(&c) {
+                    state = *t;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        self.accepting_states.contains(&state)
+    }
+}
+
 /// calculate_matches_next(e)[i] is a set of the leaf nodes which will match the first
 /// character of the string remaining after matching node i.
 fn calculate_matches_next(
