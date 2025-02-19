@@ -33,12 +33,16 @@ fn calculate_matches_next(
             for sub_expression in sub_expressions {
                 calculate_matches_next(sub_expression, matches_next);
             }
-            for i in 0..sub_expressions.len() - 1 {
+            let mut global_matches_start = HashSet::new();
+            for i in (0..sub_expressions.len()).rev() {
                 let prev_expression = &sub_expressions[i];
-                let next_expression = &sub_expressions[i + 1];
                 for j in &prev_expression.matches_end {
-                    matches_next[*j].extend(next_expression.matches_start.iter().copied());
+                    matches_next[*j].extend(global_matches_start.iter());
                 }
+                if !prev_expression.is_nullable {
+                    global_matches_start = HashSet::new();
+                }
+                global_matches_start.extend(prev_expression.matches_start.iter().copied());
             }
         }
         AnnotatedExpressionType::Closure(sub_expression) => {
