@@ -39,7 +39,21 @@ RIGHT_PRECEDENCE    ::= ")"
 
 ## Semantics
 
-The semantics of the regular expressions admitted by this crate are represented below in denotational semantics, mapping regular expressions to the set of strings they accept.
+To facilitate defining the formal semantics of the regular expressions accepted by this crate, the following abstract syntax will be used, where `.` maps to concatenation and `+` maps to choice in the concrete syntax:
+
+```test
+Characters c
+Binary Operations ⊙ ::= . | +
+Unary Operations *  ::= *
+Expressions E, F    ::= c
+                        | E⊙F
+                        | E*
+```
+
+The mapping from n-ary operations described in the concrete syntax, e.g. "a|b|c", to binary operations as described in the abstract syntax, e.g. (a+b)+c, is arbitrary, as both binary operations described in the syntax are associative.
+
+The semantics are represented below in denotational semantics, mapping regular expressions to the set of strings they accept.
+
 A statement of the form $\left[\\!\left[ E \right]\\!\right] = V$ denotes a mapping between the expression $E$ and the mathematical object $V$.
 
 Aside from the common set operations, let us define $A \times B = \left\\{ab\\ \vert a \in A \wedge b \in B\right\\}$ for sets of strings $A, B$ where juxtaposition in $ab$ represents string concatenation. Similarly, let $E^n, n \in \mathbb{N}$ denote repeated concatenation of $n$ copies of $E$, and let $E^0 = \left\\{\epsilon\right\\}$
@@ -56,8 +70,8 @@ $$\left[\\!\left[ \sigma \right]\\!\right], \sigma \in \Sigma = \left\\{\sigma\r
 
 Operations
 
-$$\left[\\!\left[ AB \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \times \left[\\!\left[ B \right]\\!\right]$$
+$$\left[\\!\left[ A.B \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \times \left[\\!\left[ B \right]\\!\right]$$
 
-$$\left[\\!\left[ A|B \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \cup \left[\\!\left[ B \right]\\!\right]$$
+$$\left[\\!\left[ A+B \right]\\!\right] = \left[\\!\left[ A \right]\\!\right] \cup \left[\\!\left[ B \right]\\!\right]$$
 
 $$\left[\\!\left[ A^* \right]\\!\right] = \bigcup_{n \in \mathbb{N}_0} \left[\\!\left[ A \right]\\!\right]^n$$
